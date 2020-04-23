@@ -6,11 +6,14 @@ classdef Atmosphere < handle
 		% Universal Gas Constant
 		Ru = 8.31446261815324; % [J/(mol.K)]
 
+		% Avogadro's Number
+		NA = 6.02214076e23; % [particles/mol]
+
 		% Atmosphere (edge) limit
 		lim = 120e3; % [m]
 	end
 
 	methods (Abstract)
-		[P, T, rho] = model(this, h)
+		[rho, P, T] = model(self, h)
 	end
 end
