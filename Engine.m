@@ -4,6 +4,12 @@ classdef Engine < handle
 		integrator;
 		showwarnings;
 		eventmssgs = {'Crashed into planet', 'Escaped the atmosphere', 'Reached escape velocity'};
+
+		% State vectors
+		X = zeros(3, 1);
+		Q = zeros(4, 1);
+		U = zeros(3, 1);
+		W = zeros(3, 1);
 	end
 
 	methods % Public
@@ -64,8 +70,8 @@ classdef Engine < handle
 				def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, pi/2, 0, 0, 0];
 
 				% Complete input state with defaults
-				Sc = num2cell([S(2:end), def(numel(S(2:end))+1:11)]);
-				[Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r] = Sc{:};
+				Ss = num2cell([S(2:end), def(numel(S(2:end))+1:11)]);
+				[Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r] = Ss{:};
 
 				% Velocity components
 				u =  Uinf * cos(gamma) * cos(chi);
@@ -89,18 +95,19 @@ classdef Engine < handle
 
 	methods (Access = protected)
 		% 6-DOF equations of motion
-		function dS = motion(~, ~, S, sc, pl)
+		function dS = motion(self, t, S, sc, pl)
 			% sc = [Spacecraft]
 			% pl = [Planet]
 
 			% State variables
-			Sc = num2cell(S);
-			[rad, lat, ~, q0, q1, q2, q3, u, v, w, p, q, r] = Sc{:}; % ~ = lon
+			Ss = num2cell(S);
+			[rad, lat, lon, q0, q1, q2, q3, u, v, w, p, q, r] = Ss{:};
 
 			% Useful state vectors
-			Q = [q0; q1; q2; q3];
-			U = [u; v; w];
-			W = [p; q; r];
+			self.X = [rad; lat; lon];
+			self.Q = [q0; q1; q2; q3];
+			self.U = [u; v; w];
+			self.W = [p; q; r];
 
 			% Quaternion Rotation (B -> V)
 			Lq = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
@@ -111,72 +118,86 @@ classdef Engine < handle
 			Lvb = Lq.';
 
 			% Position (inertial, inertial axes)
-			Uv = Lbv * U;
+			Uv = Lbv * self.U;
 			drad = -Uv(3);
 			dlat = Uv(1) / rad;
 			dlon = Uv(2) / (rad * cos(lat));
 
 			% Rotation (body w.r.t. local horizon)
-			Wbv = W - Lvb * [dlon * cos(lat); -dlat; -dlon * sin(lat)];
+			Wbv = self.W - Lvb * [dlon * cos(lat); -dlat; -dlon * sin(lat)];
 			pbv = Wbv(1); qbv = Wbv(2); rqv = Wbv(3);
 			Wq = [0  , -pbv, -qbv, -rqv ;
 			      pbv,  0  ,  rqv, -qbv ;
 			      qbv, -rqv,  0  ,  pbv ;
 			      rqv,  qbv, -pbv,   0 ];
-			dQ = 1/2 * Wq * Q;
+			dQ = 1/2 * Wq * self.Q;
 			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
 
 			% Gravity force (body axes)
 			Fg = Lvb * [0; 0; pl.mu * sc.m / rad^2];
-			% Fg = self.gravity(t, )
 
 			% Aerodynamic forces (body axes)
-			Fa = [0; 0; 0];
-			Ma = [0; 0; 0];
-			% [Fa, Ma] = self.aerodynamics(t, )
-			% Uinf = norm(U);
-			% Udir = U / Uinf;
-			% CD = 1.2; % 0.4;
-			% alt = rad - pl.R;
-			% [~, ~, ~, rho] = atmoscoesa(alt, 'None');
-			% FD = 1/2 * rho * Uinf^2 * sc.S * CD;
-			% Fa = -FD * Udir;
+			[Fa, Ma] = self.aerodynamics(t, sc, pl);
 
 			% Velocity (inertial, body axes)
 			F = Fg + Fa;
-			dU = F / sc.m - cross(W, U);
+			dU = F / sc.m - cross(self.W, self.U);
 			du = dU(1); dv = dU(2); dw = dU(3);
 
 			% Angular velocity (body)
 			M = Ma;
-			dW = sc.I \ (M - cross(W, sc.I * W));
+			dW = sc.I \ (M - cross(self.W, sc.I * self.W));
 			dp = dW(1); dq = dW(2); dr = dW(3);
 
 			dS = [drad; dlat; dlon; dq0; dq1; dq2; dq3; du; dv; dw; dp; dq; dr];
 		end
 
+		% function Fg = gravity(self, ~, sc, pl)
+		% end
+
+		function [Fa, Ma] = aerodynamics(self, ~, sc, pl)
+			% Angle of Attack
+			Uinf = norm(self.U);
+			alpha = atan2(self.U(3), self.U(1));
+			beta = asin(self.U(2) / Uinf);
+
+			% Environment
+			alt = self.X(1) - pl.R;
+			rho = pl.atm.model(alt);
+			Kn = pl.atm.rarefaction(alt);
+
+			% Aerodynamic coefficients
+			CL = sc.Cx('CL', alpha, Kn);
+			CD = sc.Cx('CD', alpha, Kn);
+			Cm = sc.Cx('Cm', alpha, Kn);
+
+			% Forces and Moments
+			qS = 1/2 * rho * Uinf^2 * sc.S;
+			FL = qS * CL;
+			FD = qS * CD;
+			FC = 0;
+			ML = 0;
+			MM = qS * sc.L * Cm;
+			MN = 0;
+
+			% Vectors in body frame (W -> B)
+			Lwb = [cos(alpha)*cos(beta), -cos(alpha)*sin(beta), -sin(alpha) ;
+			       sin(beta)           ,  cos(beta)           ,  0          ;
+			       sin(alpha)*cos(beta), -sin(alpha)*sin(beta),  cos(alpha)];
+			Fa = Lwb * -[FD; FC; FL];
+			Ma = [ML; MM; MN];
+		end
+
 		function [val, ter, dir] = events(~, ~, S, pl)
 			% Can be extended by overriding / concatenating to its results
+			% Note: [Crash, EscapedAtmosphere, EscapeVelocity]
 			rad = S(1);
 			alt = rad - pl.R;
 			Uinf = norm(S(8:10)); % u, v, w
 			Uesc = sqrt(2 * pl.mu / rad);
 			val = [alt - 0; alt - pl.atm.lim; Uinf - Uesc];
 			dir = [-1; +1; +1];
-			ter = [true; true; true];
+			ter = [true; false; true];
 		end
-
-		% function Fg = gravity()
-
-		% end
-
-		% function [Fa, Ma] = aerodynamics(S, pl)
-		% 	alpha =
-		% 	beta = % = 0 in pitch-plane case
-		% 	if
-		% 	alpha
-		% 	beta
-
-		% end
 	end
 end
