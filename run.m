@@ -5,7 +5,8 @@ earth = Planet(6371e3, 5.97237e24, AtmosphereCOESA);
 % Reference diameter/area from Moss (DSMC Simulations)
 % Mass properties from "CsmLmSpacecraftOperationalDataBook-Volume3-MassProperties"
 % Weight: lb -> kg, inertia moments: slug.ft^2 -> kg.m^2
-apollo = Spacecraft(5856.8754, 3.9116, [8022.3748, 7149.22804, 6421.1538], 'apollo.mat');
+apollo = Spacecraft(5856.8754, 3.9116, [8022.3748, 7149.22804, 6421.1538], 'fixapollo.mat');
+% apollo = Spacecraft(5856.8754, 3.9116, [8000, 7000, 7000], 'fixapollo.mat');
 
 % Max integration time
 T = 3600 * 2; % 3600 * 10;
@@ -13,12 +14,12 @@ T = 3600 * 2; % 3600 * 10;
 % Initial conditions
 alt = 120e3;
 Uinf = 10e3; % 10.73e3;
-gamma = deg2rad(-6); % deg2rad(-5.9);
+gamma = deg2rad(-8); % deg2rad(-5.9);
 S0 = [alt, Uinf, gamma];
 % S0 = [];
 
 % Trajectory simulation
-engine = Engine('Reltol', 1e-3, 'AbsTol', 1e-5);
+engine = Engine('Reltol', 1e-5, 'AbsTol', 1e-7);
 [t, S, ie] = engine.integrate(T, S0, apollo, earth);
 
 % Post

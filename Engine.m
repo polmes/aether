@@ -186,6 +186,15 @@ classdef Engine < handle
 			       sin(alpha)*cos(beta), -sin(alpha)*sin(beta),  cos(alpha)];
 			Fa = Lwb * -[FD; FC; FL];
 			Ma = [ML; MM; MN];
+			
+			% Debug
+% 			disp(' ');
+% 			disp(['Fa = ' num2str(Fa.')]);
+% 			disp(['Ma = ' num2str(Ma.')]);
+% 			disp(['U = ', num2str(self.U.')]);
+% 			th = asin(2 * (self.Q(1).*self.Q(3) - self.Q(4).*self.Q(2)));
+% 			disp(['Angles = ', num2str(rad2deg([alpha, th, alpha-th]))]);
+% 			disp(' ');
 		end
 
 		function [val, ter, dir] = events(~, ~, S, pl)
@@ -197,7 +206,7 @@ classdef Engine < handle
 			Uesc = sqrt(2 * pl.mu / rad);
 			val = [alt - 0; alt - pl.atm.lim; Uinf - Uesc];
 			dir = [-1; +1; +1];
-			ter = [true; false; true];
+			ter = [true; true; true];
 		end
 	end
 end
