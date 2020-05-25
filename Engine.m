@@ -3,7 +3,7 @@ classdef Engine < handle
 		opts = odeset();
 		integrator;
 		showwarnings;
-		eventmssgs = {'Crashed into planet', 'Escaped the atmosphere', 'Reached escape velocity'};
+		eventmssgs = {'Reached deploy altitude', 'Escaped the atmosphere', 'Reached escape velocity'};
 
 		% State vectors
 		X = zeros(3, 1);
@@ -43,7 +43,7 @@ classdef Engine < handle
 				throw(ME);
 			end
 
-			self.opts.Events = @(t, S) self.events(t, S, pl);
+			self.opts.Events = @(t, S) self.events(t, S, sc, pl);
 			[t, S, ~, ~, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
 
 			if ~isempty(ie) && self.showwarnings
@@ -73,7 +73,7 @@ classdef Engine < handle
 				Ss = num2cell([S(2:end), def(numel(S(2:end))+1:11)]);
 				[Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r] = Ss{:};
 
-				% Velocity components
+				% Velocity components (vehicle frame)
 				u =  Uinf * cos(gamma) * cos(chi);
 				v =  Uinf * cos(gamma) * sin(chi);
 				w = -Uinf * sin(gamma);
@@ -84,6 +84,13 @@ classdef Engine < handle
 				     cos(ph/2)*sin(th/2)*cos(ps/2) + sin(ph/2)*cos(th/2)*sin(ps/2) ;
 				     cos(ph/2)*cos(th/2)*sin(ps/2) - sin(ph/2)*sin(th/2)*cos(ps/2)];
 				q0 = Q(1); q1 = Q(2); q2 = Q(3); q3 = Q(4);
+
+				% Velocity components (body frame)
+				Lvb = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2+q0*q3)    , 2*(q1*q3-q0*q2)     ;
+				       2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
+				       2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
+				U = Lvb * [u; v; w];
+				u = U(1); v = U(2); w = U(3);
 
 				S0 = [rad; lat; lon; q0; q1; q2; q3; u; v; w; p; q; r];
 			else
@@ -186,9 +193,10 @@ classdef Engine < handle
 			       sin(alpha)*cos(beta), -sin(alpha)*sin(beta),  cos(alpha)];
 			Fa = Lwb * -[FD; FC; FL];
 			Ma = [ML; MM; MN];
-			
+
 			% Debug
 % 			disp(' ');
+% 			disp(['FL/FD = ' num2str(FL / FD)]);
 % 			disp(['Fa = ' num2str(Fa.')]);
 % 			disp(['Ma = ' num2str(Ma.')]);
 % 			disp(['U = ', num2str(self.U.')]);
@@ -197,14 +205,14 @@ classdef Engine < handle
 % 			disp(' ');
 		end
 
-		function [val, ter, dir] = events(~, ~, S, pl)
+		function [val, ter, dir] = events(~, ~, S, sc, pl)
 			% Can be extended by overriding / concatenating to its results
-			% Note: [Crash, EscapedAtmosphere, EscapeVelocity]
+			% Note: [DeployAltitude, EscapedAtmosphere, EscapeVelocity]
 			rad = S(1);
 			alt = rad - pl.R;
 			Uinf = norm(S(8:10)); % u, v, w
 			Uesc = sqrt(2 * pl.mu / rad);
-			val = [alt - 0; alt - pl.atm.lim; Uinf - Uesc];
+			val = [alt - sc.deploy; alt - pl.atm.lim; Uinf - Uesc];
 			dir = [-1; +1; +1];
 			ter = [true; true; true];
 		end

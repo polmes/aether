@@ -16,7 +16,7 @@ classdef Planet < handle
 
 	methods
 		% Constructor
-		function this = Planet(R, M, atm) % and T
+		function this = Planet(R, M, atm) % and T (period)
 			% M = planet mass [kg]
 			% T = rotation period [s]
 
