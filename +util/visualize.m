@@ -1,4 +1,4 @@
-function visualize(t, S, pl)
+function visualize(t, S, pl, sc)
 	%% TRAJECTORY
 
 	rad = S(:,1); lat = S(:,2); lon = S(:,3);
@@ -79,4 +79,39 @@ function visualize(t, S, pl)
 	% Combined
 	figure;
 	plot(Uinf, alt);
+	
+	% Environment
+	Kn = pl.atm.rarefaction(alt);
+	figure;
+	plot(t, Kn);
+	
+	% Aerodynamic coefficients	
+	CL = sc.Cx('CL', alpha, Kn);
+	CD = sc.Cx('CD', alpha, Kn);
+	Cm = sc.Cx('Cm', alpha, Kn);
+	figure;
+	hold('on');
+	plot(t, CL);
+	plot(t, CD);
+	plot(t, Cm);
+	
+	% More aerodynamics
+	figure;
+	plot(t, CL./CD);
+	
+	% Aerodynamic forces
+	rho = pl.atm.model(alt);
+	qS = 1/2 * rho .* Uinf.^2 * sc.S;
+	FL = qS .* CL;
+	FD = qS .* CD;
+	figure;
+	hold('on');
+	plot(t, FL);
+	plot(t, FD);
+	
+	% Mach number
+	[~, a] = atmoscoesa(alt, 'None');
+	Minf = Uinf ./ a;
+	figure;
+	plot(t, Minf);
 end
