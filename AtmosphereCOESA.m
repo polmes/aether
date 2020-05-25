@@ -7,7 +7,7 @@ classdef AtmosphereCOESA < Atmosphere
 	%
 	% References:
 	% [1] "The 1976 Standard Atmosphere Above 86-km Altitude"
-	%   https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770003812.pdf
+	%     https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770003812.pdf
 
 	properties
 		action = 'None'; % show warning/error if out of range?
