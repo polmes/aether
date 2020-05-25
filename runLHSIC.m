@@ -1,13 +1,12 @@
 %% INPUT
 
-name = 'MCAll';
+name = 'LHSIC';
 
-inputs = [uq.PolynomialGaussLegendre(9.73e3, 11.73e3)              , ... % entry velocity about 10.73 km/s
-          uq.PolynomialGaussLegendre(deg2rad(-5.9), deg2rad(-7.9)) , ... % flight path angle about -6.9 deg
-          uq.PolynomialGaussHermite(0, 1)                          , ... % for density
-          uq.PolynomialGaussHermite(0, 1)                         ];     % for mean free path
+inputs = [uq.RandomUniform(9.73e3, 11.73e3)              , ... % entry velocity about 10.73 km/s
+          uq.RandomUniform(deg2rad(-5.9), deg2rad(-7.9)) , ... % flight path angle about -6.9 deg
+          uq.RandomUniform(deg2rad(-45), deg2rad(45))   ]; ... % attitude (theta) angle about 0 deg
 
-NS = 10000;
+NS = 10;
 
 NP = 2;
 
@@ -16,10 +15,10 @@ NP = 2;
 % Constants
 sc = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'apollomod', 7.3e3); % Apollo spacecraft
 at = AtmosphereStochastic(0, 0, '24/07/1969', 12, sc, 5); % stochastic NRLMSISE
-pl = Planet(6371e3, 5.97237e24, AtmosphereSample(at)); % Earth properties
+pl = Planet(6371e3, 5.97237e24, at); % Earth properties
 
 % Generate samples
-Y = uq.random(inputs, NS);
+Y = uq.LHS(inputs, NS);
 
 % Initial conditions
 alt = 120e3; % always start at edge of atmosphere
@@ -37,7 +36,7 @@ end
 
 spmd(NP)
 	j = labindex;
-	if labindex ~= NP
+	if j ~= NP
 		NW = floor(NS / NP);
 	else
 		NW = NS - (NP - 1) * floor(NS / NP);
@@ -52,8 +51,8 @@ spmd(NP)
 		disp(['Combination of random inputs #' num2str(k)]);
 
 		% Random inputs
-		S0 = [alt, Y(k,1), Y(k,2)];
-		pl.atm.update(Y(k,3), Y(k,4));
+		% [alt, Uinf, gamma, chi, lat, lon, ph, th, ps]
+		S0 = [alt, Y(k,1), Y(k,2), 0, 0, 0, 0, Y(k,3), 0];
 
 		% Trajectory simulation
 		[t, S, ie] = engine.integrate(T, S0, sc, pl);
@@ -80,5 +79,5 @@ Q = Q{1};
 %% POST
 
 % Save
-filename = [name '_' num2str(q)];
+filename = [name '_' num2str(NS)];
 util.store(filename, inputs, NS, Y, U, Q, sc, pl);
