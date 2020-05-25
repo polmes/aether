@@ -1,4 +1,4 @@
-classdef Planet < handle
+classdef Planet < matlab.mixin.Copyable
 	% Planet
 	% Base class to define properties of celestial bodies
 
@@ -19,11 +19,12 @@ classdef Planet < handle
 		function this = Planet(R, M, atm) % and T (period)
 			% M = planet mass [kg]
 			% T = rotation period [s]
-
-			this.R = R;
-			this.mu = M * this.G;
-			% this.omega = 2*pi / T;
-			this.atm = atm;
+			if nargin > 0
+				this.R = R;
+				this.mu = M * this.G;
+				% this.omega = 2*pi / T;
+				this.atm = atm;
+			end
 		end
 	end
 end

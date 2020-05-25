@@ -1,1 +1,5 @@
+# MATLAB temp files
 *.m~
+
+# Data directory
+mat/

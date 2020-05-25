@@ -67,7 +67,8 @@ classdef Engine < handle
 				rad = pl.R + alt;
 
 				% Rest of defaults using (circular) orbital speed
-				def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, pi/2, 0, 0, 0];
+				% def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, pi/2, 0, 0, 0];
+				def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 				% Complete input state with defaults
 				Ss = num2cell([S(2:end), def(numel(S(2:end))+1:11)]);

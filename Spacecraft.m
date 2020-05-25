@@ -8,6 +8,10 @@ classdef Spacecraft < handle
 		db; % struct with aerodynamic coefficients
 		deploy; % altitude at which to deploy drogue/parachutes
 	end
+	
+	properties (Constant)
+		datadir = 'mat/';
+	end
 
 	methods
 		% Constructor
@@ -20,7 +24,7 @@ classdef Spacecraft < handle
 			self.deploy = alt;
 
 			% Store database as struct
-			self.db = load(file);
+			self.db = load([self.datadir file '.mat']);
 		end
 
 		% Aerodynamic coefficients interpolant

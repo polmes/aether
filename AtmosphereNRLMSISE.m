@@ -30,7 +30,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 			elseif nargin == 6
 				[Ts, rhos] = atmosnrlmsise00(h, lat, lon, 2020, doy, tod, 150, 150, 4);
 			else
-				ME = MException('AtmosphereNRLMSISE:model:input', 'Unexpected number of inputs %d', nargin);
+				ME = MException('AtmosphereNRLMSISE:model:input', 'Unexpected number of inputs: %d', nargin);
 				throw(ME);
 			end
 
@@ -48,7 +48,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 			elseif nargin == 6
 				[~, P, T, M] = self.model(h, lat, lon, doy, tod);
 			else
-				ME = MException('AtmosphereNRLMSISE:rarefaction:input', 'Unexpected number of inputs %d', nargin);
+				ME = MException('AtmosphereNRLMSISE:rarefaction:input', 'Unexpected number of inputs: %d', nargin);
 				throw(ME);
 			end
 
