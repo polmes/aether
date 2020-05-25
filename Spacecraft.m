@@ -8,9 +8,9 @@ classdef Spacecraft < handle
 		db; % struct with aerodynamic coefficients
 		deploy; % altitude at which to deploy drogue/parachutes
 	end
-	
+
 	properties (Constant)
-		datadir = 'mat/';
+		datadir = 'constants/';
 	end
 
 	methods
