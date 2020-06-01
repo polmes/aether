@@ -9,7 +9,7 @@ classdef Atmosphere < handle
 		% Avogadro's Number
 		NA = 6.02214076e23; % [particles/mol]
 
-		% Atmosphere (edge) limit
+		% Atmosphere (edge) limit = Entry Interface (EI)
 		lim = 120e3; % [m]
 	end
 

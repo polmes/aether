@@ -3,7 +3,7 @@ classdef Engine < handle
 		opts = odeset();
 		integrator;
 		showwarnings;
-		eventmssgs = {'Reached deploy altitude', 'Escaped the atmosphere', 'Reached escape velocity'};
+		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'}; % , 'Reached escape velocity'};
 
 		% State vectors
 		X = zeros(3, 1);
@@ -208,14 +208,16 @@ classdef Engine < handle
 
 		function [val, ter, dir] = events(~, ~, S, sc, pl)
 			% Can be extended by overriding / concatenating to its results
-			% Note: [DeployAltitude, EscapedAtmosphere, EscapeVelocity]
+			% Note: [DeployAltitude, SkipAtmosphere, EscapeVelocity]
 			rad = S(1);
 			alt = rad - pl.R;
 			Uinf = norm(S(8:10)); % u, v, w
-			Uesc = sqrt(2 * pl.mu / rad);
-			val = [alt - sc.deploy; alt - pl.atm.lim; Uinf - Uesc];
-			dir = [-1; +1; +1];
-			ter = [true; true; true];
+            Ucir = sqrt(pl.mu / rad);
+% 			Uesc = sqrt(2) * Ucir; % sqrt(2 * pl.mu / rad);
+            skip = ~(alt > pl.atm.lim && Uinf > Ucir); % EI + velocity
+			val = [alt - sc.deploy; skip]; % Uinf - Uesc];
+			dir = [-1; -1]; % +1];
+			ter = [true; true]; % true];
 		end
 	end
 end
