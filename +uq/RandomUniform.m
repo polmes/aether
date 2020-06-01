@@ -9,9 +9,20 @@ classdef RandomUniform < uq.Random
 	end
 
 	methods
-		function self = RandomUniform(a, b)
-			self.a = a;
-			self.b = b;
+		function self = RandomUniform(a, b, perc)
+			if nargin < 3 || isempty(perc)
+				perc = false;
+			end
+
+			if ~perc
+				% Direct limits
+				self.a = a;
+				self.b = b;
+			else
+				% Given percentage
+				self.a = a - a * b;
+				self.b = a + a * b;
+			end
 		end
 
 		function [x, w] = quadrature(self, m)
@@ -52,6 +63,10 @@ classdef RandomUniform < uq.Random
 
 		function p = partition(self, n)
 			p = linspace(self.a, self.b, n + 1);
+		end
+
+		function stdv = getStdDev(~)
+			stdv = 1;
 		end
 	end
 end

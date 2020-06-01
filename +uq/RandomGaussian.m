@@ -10,9 +10,21 @@ classdef RandomGaussian < uq.Random
 	end
 
 	methods
-		function self = RandomGaussian(mu, sigma)
+		function self = RandomGaussian(mu, sigma, perc)
+			if nargin < 3 || isempty(perc)
+				perc = false;
+			end
+
+			% Mean
 			self.mu = mu;
-			self.sigma = sigma;
+
+			if ~perc
+				% Direct variance
+				self.sigma = sigma;
+			else
+				% Given 3-sigma percentage
+				self.sigma = self.mu * sigma / 3;
+			end
 		end
 
 		function [x, w] = quadrature(self, m)
@@ -56,10 +68,14 @@ classdef RandomGaussian < uq.Random
 		end
 
 		function p = partition(self, n)
-			p = norminv(linspace(self.mu, self.sigma, n + 1));
+			p = norminv(linspace(0, 1, n+1), self.mu, self.sigma);
 
 			% Avoid singularities
 			p([1, n+1]) = [-self.INF, +self.INF];
+		end
+
+		function stdv = getStdDev(self)
+			stdv = self.sigma;
 		end
 	end
 end
