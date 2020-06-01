@@ -177,7 +177,7 @@ classdef Engine < handle
 			% Aerodynamic coefficients
 			CL = sc.Cx('CL', alpha, Kn);
 			CD = sc.Cx('CD', alpha, Kn);
-			Cm = sc.Cx('Cm', alpha, Kn);
+			Cm = sc.Cx('Cm', alpha, Kn) + sc.Cx('Cmq', alpha, Kn) * self.W(2);
 
 			% Forces and Moments
 			qS = 1/2 * rho * Uinf^2 * sc.S;
