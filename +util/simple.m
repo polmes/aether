@@ -11,10 +11,12 @@ function simple(t, S, pl, sc)
 	th = asin(2 * (q0.*q2 - q3.*q1));
 	ps = atan2(2 * (q0.*q3 + q1.*q2), 1 - 2 * (q2.^2 + q3.^2));
     alpha = atan2(S(:,10), S(:,8));
-    Kn = pl.atm.rarefaction(alt);
-    CL = sc.Cx('CL', alpha, Kn);
-	CD = sc.Cx('CD', alpha, Kn);
-	Cm = sc.Cx('Cm', alpha, Kn);
+    [MFP, a] = pl.atm.rarefaction(alt);
+    Kn = MFP / sc.L;
+    M = Uinf ./ a;
+    CL = sc.Cx('CL', alpha, Kn, M);
+	CD = sc.Cx('CD', alpha, Kn, M);
+	Cm = sc.Cx('Cm', alpha, Kn, M);
 
     % X-Y-Z
 	figure;
@@ -38,15 +40,18 @@ function simple(t, S, pl, sc)
 	plot(t, rad2deg(lat));
 	plot(t, rad2deg(lon));
     ylabel('Range [$^\circ$]');
-    
-    % Velocity vs. time	
-	figure;
-	hold('on');
-	plot(t, Uinf);
+
+    % Velocity + Mach vs. time
+    figure;
     grid('on');
     xlabel('Time [s]');
+    yyaxis('left');
+    plot(t, Uinf);
     ylabel('Velocity [m/s]');
-    
+    yyaxis('right');
+    plot(t, M);
+    ylabel('Mach');
+
     % Rarefaction + AoA vs. time
     figure;
     grid('on');
@@ -58,7 +63,7 @@ function simple(t, S, pl, sc)
     plot(t, Kn);
     ylabel('Knudsen');
     set(gca, 'YScale', 'log');
-    
+
     % Attitude vs. time
     figure;
     hold('on');
@@ -69,7 +74,7 @@ function simple(t, S, pl, sc)
     xlabel('Time [s]');
     ylabel('Attitide Angle [$^\circ$]');
     legend('$\phi$', '$\theta$', '$\psi$');
-    
+
     % Aerodynamics vs. time
     figure;
     hold('on');

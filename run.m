@@ -15,7 +15,10 @@ earth = Planet(6371e3, 5.97237e24, atm);
 % apollo = Spacecraft(5856.8754, 3.9116, 4.6939, [8000, 7000, 7000], 'mod2apollo.mat', 7.3e3);
 % apollo = Spacecraft(5856.8754, 3.9116, 4.6939, [8022.3748, 7149.22804, 6421.1538], 'mod2apollo.mat', 7.3e3);
 % apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'apollomod', 7.3e3);
-apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'constapollo', 7.3e3);
+% apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'constapollo', 7.3e3);
+% apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'apolloconst', 7.3e3);
+apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'apolloM', 7.3e3);
+% apollo = Spacecraft(5860, 3.9, 4.7, [8000, 7000, 7000], 'apolloKn', 7.3e3);
 
 % Max integration time
 T = 2000; % 3600 * 2;
@@ -33,11 +36,14 @@ T = 2000; % 3600 * 2;
 alt = 122e3; % [m] ~= 400k ft, always start at edge of atmosphere
 Uinf = 11140; % [m/s] ~= 36545 ft/s
 gamma = deg2rad(-7.01);
+% alt = 78e3; % ~255k ft
+% Uinf = 6.5e3; % ~21k ft/s
+% gamma = 0; % horizontal velocity at peak altitude
 S0 = [alt, Uinf, gamma];
 
 % Trajectory simulation
 % engine = Engine('RelTol', 1e-2, 'AbsTol', 1e-4);
-engine = Engine('RelTol', 1e-5, 'AbsTol', 1e-7);
+engine = Engine('RelTol', 1e-3, 'AbsTol', 1e-5);
 tic;
 [t, S, ie] = engine.integrate(T, S0, apollo, earth);
 toc;

@@ -172,12 +172,14 @@ classdef Engine < handle
 			% Environment
 			alt = self.X(1) - pl.R;
 			rho = pl.atm.model(alt);
-			Kn = pl.atm.rarefaction(alt);
+			[MFP, a] = pl.atm.rarefaction(alt);
+			Kn = MFP / sc.L;
+			M = Uinf / a;
 
 			% Aerodynamic coefficients
-			CL = sc.Cx('CL', alpha, Kn);
-			CD = sc.Cx('CD', alpha, Kn);
-			Cm = sc.Cx('Cm', alpha, Kn) + sc.Cx('Cmq', alpha, Kn) * self.W(2);
+			CL = sc.Cx('CL', alpha, Kn, M);
+			CD = sc.Cx('CD', alpha, Kn, M);
+			Cm = sc.Cx('Cm', alpha, Kn, M) + sc.Cx('Cmq', alpha, Kn, M) * self.W(2);
 
 			% Forces and Moments
 			qS = 1/2 * rho * Uinf^2 * sc.S;

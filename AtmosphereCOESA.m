@@ -43,9 +43,10 @@ classdef AtmosphereCOESA < Atmosphere
 			[T, ~, P, rho] = atmoscoesa(h, self.action);
 		end
 
-		function MFP = rarefaction(self, h)
+		function [MFP, a] = rarefaction(self, h)
 			h = h / 1e3; % [m] -> [km] for interpolation
 			MFP = interp1(self.data(:,1), self.data(:,2), h, self.interpol);
+			[~, a] = atmoscoesa(h, self.action);
 
 			% % Get state
 			% [rho, P, T] = self.model(h);

@@ -12,6 +12,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 		Mi = [4.0026e-3, 15.9994e-3, 28.0134e-3, 31.9988e-3, 39.948e-3, 1.00797e-3, 14.0067e-3];
 		sigma = 3.65e-10; % effective collision diameter [m]
 		idx = [1:5, 7:8]; % corresponding to [He, O, N2, O2, Ar, H, N]
+		gamma = 1.4; % heat capacity ratio
 	end
 
 	methods
@@ -42,7 +43,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 			P = rho .* self.Ru ./ M .* T;
 		end
 
-		function MFP = rarefaction(self, h, lat, lon, doy, tod)
+		function [MFP, a] = rarefaction(self, h, lat, lon, doy, tod)
 			if nargin == 2
 				[~, P, T, M] = self.model(h);
 			elseif nargin == 6
@@ -55,6 +56,8 @@ classdef AtmosphereNRLMSISE < Atmosphere
 			V = sqrt(8 * self.Ru * T ./ (pi * M));
 			nu = 4 * self.sigma^2 * self.NA * P .* sqrt(pi ./ (M * self.Ru .* T));
 			MFP = V ./ nu;
+
+			a = sqrt(self.gamma * self.Ru ./ M .* T);
 		end
 	end
 end
