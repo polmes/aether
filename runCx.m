@@ -14,13 +14,14 @@ inputs = [uq.RandomGaussian(1, stdv, true) , ... % for CL
 
 NS = 3000;
 
-NP = 4;
-
-tol = [1e-2, 1e-4];
+tol = [1e-3, 1e-5];
 
 file = 'apollomod';
 
 %% PRE
+
+% Get # of physical cores
+NP = feature('numcores');
 
 % Constants
 sc = repelem(SpacecraftStochastic(5860, 3.9, 4.7, [8000, 7000, 7000], file, 7.3e3, inputs), NP); % Apollo spacecraft
@@ -32,8 +33,8 @@ pl = Planet(6371e3, 5.97237e24, at); % Earth properties
 Y = uq.MC(inputs, NS);
 
 % Initial conditions (from Apollo 4, ignoring lat/lon)
-alt = 122e3; % [m] ~= 400k ft, always start at edge of atmosphere
-Uinf = 11140; % [m/s] ~= 36545 ft/s
+alt = 122e3; % [m] ~ 400k ft, always start at edge of atmosphere
+Uinf = 11140; % [m/s] ~ 36545 ft/s
 gamma = deg2rad(-7.01);
 S0 = [alt, Uinf, gamma];
 
