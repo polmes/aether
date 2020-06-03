@@ -1,0 +1,3 @@
+tol = logspace(-1, -10, 10); % RelTol's (AbsTol's are x1e-2)
+
+file = 'apolloM';

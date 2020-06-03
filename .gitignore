@@ -3,3 +3,6 @@
 
 # Data directory
 mat/
+
+# Input files
+*_inputs.m

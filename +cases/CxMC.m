@@ -1,54 +1,36 @@
-%% INPUT
+% Load inputs
+eval(['cases.' mfilename '_inputs']);
 
-name = 'Cx_MC';
+% Load global constants
+constants;
 
-stdv = 0.05;
-
+% Random inputs
 inputs = [uq.RandomGaussian(1, stdv, true) , ... % for CL
           uq.RandomGaussian(1, stdv, true) , ... % for CD
           uq.RandomGaussian(1, stdv, true)];     % for Cm
 
-% inputs = [uq.RandomUniform(-0.05, 0.05) , ... % for CL
-%           uq.RandomUniform(-0.10, 0.10) , ... % for CD
-%           uq.RandomUniform(-0.01, 0.01)];     % for Cm
-
-NS = 3000;
-
-tol = [1e-3, 1e-5];
-
-file = 'apollomod';
-
-%% PRE
-
 % Get # of physical cores
 NP = feature('numcores');
 
-% Constants
-sc = repelem(SpacecraftStochastic(5860, 3.9, 4.7, [8000, 7000, 7000], file, 7.3e3, inputs), NP); % Apollo spacecraft
-at = AtmosphereNRLMSISE(0, 0, '24/07/1969', 12); % standard NRLMSISE
-pl = Planet(6371e3, 5.97237e24, at); % Earth properties
+% Initialize objects
+sc = repelem(SpacecraftStochastic(apollo.m, apollo.L, apollo.R, apollo.I, file, apollo.deploy, inputs), NP); % Apollo spacecraft
+at = AtmosphereNRLMSISE(atm.lat, atm.lon, atm.date, atm.hrs); % standard NRLMSISE
+pl = Planet(earth.R, earth.M, at); % Earth properties
 
 % Generate samples
 % Y = uq.LHS(inputs, NS);
 Y = uq.MC(inputs, NS);
 
-% Initial conditions (from Apollo 4, ignoring lat/lon)
-alt = 122e3; % [m] ~ 400k ft, always start at edge of atmosphere
-Uinf = 11140; % [m/s] ~ 36545 ft/s
-gamma = deg2rad(-7.01);
+% Solver setup
 S0 = [alt, Uinf, gamma];
-
-% Solver parameters
-T = 2000; % max integration time
 engine = Engine('RelTol', tol(1), 'AbsTol', tol(2), 'ShowWarnings', false);
-
-%% MAIN
 
 % Init parallel pool
 if isempty(gcp('nocreate'))
 	parpool(NP);
 end
 
+% Parallelization
 spmd(NP)
 	j = labindex;
 	if labindex ~= NP
@@ -89,8 +71,6 @@ end
 U = U{1};
 Q = Q{1};
 
-%% POST
-
 % Save
-filename = [name '_' num2str(stdv, '%.2f') '_' file '_' num2str(NS) '_' num2str(tol(1)) '_' num2str(tol(2))];
+filename = [mfilename '_' num2str(stdv, '%.2f') '_' file '_' num2str(NS) '_' num2str(tol(1)) '_' num2str(tol(2))];
 util.store(filename, inputs, NS, Y, U, Q, sc, pl);

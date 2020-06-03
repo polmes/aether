@@ -1,0 +1,3 @@
+name = 'CxMC_0.05'; % case to study
+
+NT = 5; % # of convergence steps
