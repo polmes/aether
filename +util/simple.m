@@ -1,4 +1,4 @@
-function simple(t, S, pl, sc)
+function simple(t, S, sc, pl)
     % Variables
 	rad = S(:,1); lat = S(:,2); lon = S(:,3);
 	alt = rad - pl.R;
@@ -90,7 +90,7 @@ function simple(t, S, pl, sc)
     set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
     set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
     set(findobj('Type', 'ColorBar'), 'TickLabelInterpreter', 'latex');
-    set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10]); % [0 0 16 12]
+    set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10]);
     set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
     set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1);
 end
