@@ -20,7 +20,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 			% Initial latitude, longitude, Day of Year, Time of Day
 			self.lat = rad2deg(lat);
 			self.lon = rad2deg(lon);
-			self.doy = day(datetime(date), 'DayOfYear');
+			self.doy = day(datetime(date, 'InputFormat', 'yyyy/MM/dd'), 'DayOfYear');
 			self.tod = hrs * 3600;
 		end
 
