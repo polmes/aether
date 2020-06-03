@@ -72,5 +72,5 @@ U = U{1};
 Q = Q{1};
 
 % Save
-filename = [mfilename '_' num2str(stdv, '%.2f') '_' file '_' num2str(NS) '_' num2str(tol(1)) '_' num2str(tol(2))];
+filename = [mfilename '_' num2str(stdv, '%.2f') '_' file '_' num2str(NS) '_' num2str(tol(1), '%.0e') '_' num2str(tol(2), '%.0e')];
 util.store(filename, inputs, NS, Y, U, Q, sc, pl);
