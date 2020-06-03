@@ -1,6 +1,7 @@
 function simple(t, S, sc, pl)
 	% Variables
 	rad = S(:,1); lat = S(:,2); lon = S(:,3);
+	ran = lat * pl.R;
 	alt = rad - pl.R;
 	x = rad .* cos(lat) .* cos(lon);
 	y = rad .* cos(lat) .* sin(lon);
@@ -34,12 +35,11 @@ function simple(t, S, sc, pl)
 	grid('on');
 	xlabel('Time [s]');
 	yyaxis('left');
-	plot(t, alt / 1e3); % [km]
+	plot(t, alt / 1e3);
 	ylabel('Altitude [km]');
 	yyaxis('right');
-	plot(t, rad2deg(lat));
-	plot(t, rad2deg(lon));
-	ylabel('Range [$^\circ$]');
+	plot(t, ran / 1e3);
+	ylabel('Range [km]');
 
 	% Velocity + Mach vs. time
 	figure;

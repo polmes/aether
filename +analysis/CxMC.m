@@ -13,6 +13,7 @@ Qc = cell(NF, 1);
 for i = 1:NF
 	data = load([datadir files(i).name]);
 	Qc{i} = data.Q;
+	pl = data.pl;
 end
 Q = cell2mat(Qc);
 clear('Qc');
@@ -26,8 +27,13 @@ n = floor(logspace(1, log10(NG), NT));
 % Any errors?
 disp(['Good trajectories: ' num2str(NG/NS * 100) '%']);
 
-% Statistics
+% QoI of interest
 Qgood = Q(good, [3 4]);
+Qgood(:,1) = Qgood(:,1) * pl.R / 1e3; % latitude to range [km]
+[~, a] = pl.atm.rarefaction(sc.deploy);
+Qgood(:,2) = Qgood(:,2) / a; % velocity to Mach
+
+% Statistics
 Qmean = zeros(NT, 2);
 Qvari = zeros(NT, 2);
 for i = 1:numel(n)
@@ -41,8 +47,8 @@ end
 figure;
 scatter(Qgood(:,1), Qgood(:,2), 10, 'filled');
 grid('on');
-xlabel('Range [$^\circ$]');
-ylabel('Deploy Velocity [m/s]');
+xlabel('Range [km]');
+ylabel('Deploy Mach');
 
 % Range convergence
 figure;
@@ -51,7 +57,7 @@ grid('on');
 xlabel('Number of Samples');
 yyaxis('left');
 plot(n, Qmean(:,1), '^-', 'MarkerFaceColor', 'auto');
-ylabel('Mean Range [$^\circ$]');
+ylabel('Mean Range [km]');
 yyaxis('right');
 plot(n, Qvari(:,1), 'v-', 'MarkerFaceColor', 'auto');
 ylabel('Range Variance');
@@ -65,10 +71,10 @@ grid('on');
 xlabel('Number of Samples');
 yyaxis('left');
 plot(n, Qmean(:,2), '^-', 'MarkerFaceColor', 'auto');
-ylabel('Mean Velocity [m/s]');
+ylabel('Mean Mach');
 yyaxis('right');
 plot(n, Qvari(:,2), 'v-', 'MarkerFaceColor', 'auto');
-ylabel('Velocity Variance');
+ylabel('Mach Variance');
 set(gca, 'XScale', 'log');
 xlim([0, inf]);
 
