@@ -73,9 +73,5 @@ classdef RandomGaussian < uq.Random
 			% Avoid singularities
 			p([1, n+1]) = [-self.INF, +self.INF];
 		end
-
-		function stdv = getStdDev(self)
-			stdv = self.sigma;
-		end
 	end
 end

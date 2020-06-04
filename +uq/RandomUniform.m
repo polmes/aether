@@ -64,9 +64,5 @@ classdef RandomUniform < uq.Random
 		function p = partition(self, n)
 			p = linspace(self.a, self.b, n + 1);
 		end
-
-		function stdv = getStdDev(~)
-			stdv = 1;
-		end
 	end
 end
