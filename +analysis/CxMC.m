@@ -1,4 +1,4 @@
-%% PRE
+%% INPUT
 
 % Load inputs
 eval(['analysis.' mfilename '_inputs']);
@@ -8,15 +8,21 @@ constants;
 
 % Load data
 files = dir([datadir name '*.mat']);
+if isempty(files)
+	error('No files match the provided case/name');
+end
 NF = numel(files);
 Qc = cell(NF, 1);
 for i = 1:NF
 	data = load([datadir files(i).name]);
 	Qc{i} = data.Q;
 	pl = data.pl;
+	sc = data.sc(1);
 end
 Q = cell2mat(Qc);
 clear('Qc');
+
+%% PRE
 
 % QoI = [st, dur, pos, Uend, maxU, maxG, maxQ, q]
 good = find(Q(:,1) == 1);
@@ -30,16 +36,22 @@ disp(['Good trajectories: ' num2str(NG/NS * 100) '%']);
 % QoI of interest
 Qgood = Q(good, [3 4]);
 Qgood(:,1) = Qgood(:,1) * pl.R / 1e3; % latitude to range [km]
-[~, a] = pl.atm.rarefaction(sc.deploy);
-Qgood(:,2) = Qgood(:,2) / a; % velocity to Mach
+% [~, a] = pl.atm.rarefaction(sc.deploy);
+% Qgood(:,2) = Qgood(:,2) / a; % velocity to Mach
 
 % Statistics
 Qmean = zeros(NT, 2);
 Qvari = zeros(NT, 2);
-for i = 1:numel(n)
+for i = 1:NT
 	Qmean(i,:) = mean(Qgood(1:n(i),:));
 	Qvari(i,:) = mean((Qgood(1:n(i),:) - Qmean(i,:)).^2);
 end
+
+% Standard deviations
+Qstdv = sqrt(Qvari(NT,:));
+Qperc = Qstdv ./ Qmean(NT,:) * 100;
+disp(['StdDev Range    = ' num2str(Qstdv(1), '%.2f') ' km  = ' num2str(Qperc(1), '%.2f') '%']);
+disp(['StdDev Velocity = ' num2str(Qstdv(2), '%.2f') ' m/s = ' num2str(Qperc(2), '%.2f') '%']);
 
 %% POST
 
@@ -48,7 +60,7 @@ figure;
 scatter(Qgood(:,1), Qgood(:,2), 10, 'filled');
 grid('on');
 xlabel('Range [km]');
-ylabel('Deploy Mach');
+ylabel('Deploy Velocity [m/s]');
 
 % Range convergence
 figure;
@@ -71,10 +83,10 @@ grid('on');
 xlabel('Number of Samples');
 yyaxis('left');
 plot(n, Qmean(:,2), '^-', 'MarkerFaceColor', 'auto');
-ylabel('Mean Mach');
+ylabel('Mean Velocity [m/s]');
 yyaxis('right');
 plot(n, Qvari(:,2), 'v-', 'MarkerFaceColor', 'auto');
-ylabel('Mach Variance');
+ylabel('Velocity Variance');
 set(gca, 'XScale', 'log');
 xlim([0, inf]);
 
