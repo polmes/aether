@@ -112,6 +112,8 @@ set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 
 set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
 set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1);
 
+%% FINAL
+
 % Save figures
 names = {'scatter', 'convran', 'convvel'};
 figcount = numel(names); % # of figures to save
