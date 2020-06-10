@@ -40,6 +40,7 @@ function simple(t, S, sc, pl)
 	yyaxis('right');
 	plot(t, ran / 1e3);
 	ylabel('Range [km]');
+	xlim([0 inf]);
 
 	% Velocity + Mach vs. time
 	figure;
@@ -51,7 +52,29 @@ function simple(t, S, sc, pl)
 	yyaxis('right');
 	plot(t, M);
 	ylabel('Mach');
-
+	xlim([0 inf]);
+	
+	% Altitude vs. velocity
+	figure;
+	plot(Uinf, alt / 1e3);
+	grid('on');
+	xlabel('Velocity [m/s]');
+	ylabel('Altitude [km]');
+	
+	% Mach vs. velocity
+	figure;
+	plot(M, alt / 1e3);
+	grid('on');
+	xlabel('Mach');
+	ylabel('Altitude [km]');
+	
+	% Altitude vs. range
+	figure;
+	plot(ran / 1e3, alt / 1e3);
+	grid('on');
+	xlabel('Range [km]');
+	ylabel('Altitude [km]')
+	
 	% Rarefaction + AoA vs. time
 	figure;
 	grid('on');
@@ -63,6 +86,7 @@ function simple(t, S, sc, pl)
 	plot(t, Kn);
 	ylabel('Knudsen');
 	set(gca, 'YScale', 'log');
+	xlim([0 inf]);
 
 	% Attitude vs. time
 	figure;
@@ -71,6 +95,7 @@ function simple(t, S, sc, pl)
 	plot(t, rad2deg(th));
 	plot(t, rad2deg(ps));
 	grid('on');
+	xlim([0 inf]);
 	xlabel('Time [s]');
 	ylabel('Attitide Angle [$^\circ$]');
 	legend('$\phi$', '$\theta$', '$\psi$');
@@ -82,6 +107,7 @@ function simple(t, S, sc, pl)
 	plot(t, CD);
 	plot(t, Cm);
 	grid('on');
+	xlim([0 inf]);
 	xlabel('Time [s]');
 	ylabel('Coefficient');
 	legend('$C_L$', '$C_D$', '$C_m$');
