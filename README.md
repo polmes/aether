@@ -1,6 +1,6 @@
-# aerobreaker
+# AETHER
 
-*Just another 6-DoF entry trajectory solver*
+*In greek mythology, Aether is the god of the upper sky, where the Knudsen number is so high that the continuum hypothesis breaks down. From Apollo to Artemis, it is common for space programs to be named after greek deities, and today Aerothermodynamic Estimation of Trajectories for Hypersonic Entry Research (AETHER) uses a 6-DoF solver to model the trajectories of spacecraft as they enter the atmosphere, from the upper to the lower sky.*
 
 Welcome!
 
