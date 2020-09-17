@@ -15,9 +15,9 @@ function simple(t, S, sc, pl)
 	[~, MFP, a] = pl.atm.trajectory(t, alt, lat, lon);
 	Kn = MFP / sc.L;
 	M = Uinf ./ a;
-	CL = sc.Cx('CL', alpha, Kn, M);
-	CD = sc.Cx('CD', alpha, Kn, M);
-	Cm = sc.Cx('Cm', alpha, Kn, M);
+	CL = sc.Cx('CL', alpha, M, Kn);
+	CD = sc.Cx('CD', alpha, M, Kn);
+	Cm = sc.Cx('Cm', alpha, M, Kn);
 
 	% X-Y-Z
 	figure;

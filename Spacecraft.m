@@ -28,8 +28,8 @@ classdef Spacecraft < handle
 		end
 
 		% Aerodynamic coefficients interpolant
-		function Cx = Cx(self, str, alpha, Kn, M)
-			Cx = interp3(self.db.M, self.db.alpha, self.db.Kn, self.db.(str), M, alpha, Kn);
+		function Cx = Cx(self, str, alpha, M, Kn)
+			Cx = interpn(self.db.alpha, self.db.M, self.db.Kn, self.db.(str), alpha, M, Kn);
 		end
 	end
 end
