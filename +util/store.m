@@ -1,9 +1,9 @@
 function store(name, varargin)
 	disp('Saving data...');
-	
+
 	% Parse key-value argument pairs, separate the rest
-	opts = {'DataDir', 'DateStamp', 'AsStructure', 'ProvidedNames'};
-	vals = {'mat/', false, false, false}; % default values
+	opts = {'DataDir', 'DateStamp', 'AsStructure', 'ProvidedNames', 'OverWrite'};
+	vals = {'mat/', false, false, false, false}; % default values
 	rest = true(1, nargin-1); % rest of arguments are variables to save
 	for i = 1:numel(opts)
 		if any(strcmp(varargin, opts{i}))
@@ -12,7 +12,7 @@ function store(name, varargin)
 			rest([idx, idx+1]) = false;
 		end
 	end
-	[datadir, datestamp, asstructure, providednames] = vals{:};
+	[datadir, datestamp, asstructure, providednames, overwrite] = vals{:};
 	varsin = varargin(rest);
 
 	% Save as...
@@ -23,7 +23,7 @@ function store(name, varargin)
 	end
 
 	% Avoid overwriting files...
-	if exist([datadir filename '.mat'], 'file')
+	if ~overwrite && exist([datadir filename '.mat'], 'file')
 		uid = 0;
 		while exist(['mat/' filename '.mat'], 'file')
 			uid = uid + 1;
