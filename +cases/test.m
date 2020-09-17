@@ -6,7 +6,7 @@ constants;
 
 % Initialize objects
 sc = Spacecraft(apollo.m, apollo.L, apollo.R, apollo.I, file, apollo.deploy); % Apollo spacecraft
-at = AtmosphereNRLMSISE(atm.lat, atm.lon, atm.date, atm.hrs); % standard NRLMSISE
+at = AtmosphereNRLMSISE(atm.datetime); % standard NRLMSISE
 pl = Planet(earth.R, earth.M, at); % Earth properties
 
 % Solver setup

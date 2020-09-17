@@ -1,12 +1,9 @@
 classdef AtmosphereNRLMSISE < Atmosphere
-	properties
-		lat; % [deg]
-		lon; % [deg]
-		doy; % day of year [d]
-		tod; % time of day [s]
+	properties (Access = protected)
+		dt; % date and time
 	end
 
-	properties (Constant)
+	properties (Access = protected, Constant)
 		% Molecular weights [kg/mol]
 		% [He, O, N2, O2, Ar, H, N]
 		Mi = [4.0026e-3, 15.9994e-3, 28.0134e-3, 31.9988e-3, 39.948e-3, 1.00797e-3, 14.0067e-3];
@@ -16,48 +13,37 @@ classdef AtmosphereNRLMSISE < Atmosphere
 	end
 
 	methods
-		function self = AtmosphereNRLMSISE(lat, lon, date, hrs)
-			% Initial latitude, longitude, Day of Year, Time of Day
-			self.lat = rad2deg(lat);
-			self.lon = rad2deg(lon);
-			self.doy = day(datetime(date, 'InputFormat', 'yyyy/MM/dd'), 'DayOfYear');
-			self.tod = hrs * 3600;
+		function self = AtmosphereNRLMSISE(dateandtime)
+			% Initial date and time for Day of Year + Time of Day
+			self.dt = datetime(dateandtime, 'InputFormat', 'yyyy/MM/dd HH:mm:ss');
 		end
 
-		function [rho, P, T, M] = model(self, h, lat, lon, doy, tod)
-			% Assume constant year = 2020, as well as solar radiation parameters
-			if nargin == 2
-				[Ts, rhos] = atmosnrlmsise00(h, self.lat, self.lon, 2020, self.doy, self.tod, 150, 150, 4);
-			elseif nargin == 6
-				[Ts, rhos] = atmosnrlmsise00(h, lat, lon, 2020, doy, tod, 150, 150, 4);
-			else
-				ME = MException('AtmosphereNRLMSISE:model:input', 'Unexpected number of inputs: %d', nargin);
-				throw(ME);
-			end
+		function [rho, P, T, Mw] = model(self, alt, lat, lon, dateandtime)
+			% Assume constant solar radiation parameters: atmosnrlmsise00(..., 150, 150, 4)
+			% and call MATLAB's built-in MSIS model
+			% Note: year is ignored, so is taken as 2020
+			doy = day(dateandtime, 'DayOfYear');
+			tod = seconds(timeofday(dateandtime));
+			[Ts, rhos] = atmosnrlmsise00(alt, lat, lon, 2020, doy, tod, 150, 150, 4);
 
-			% Vectors
+			% Quantities of Interest
 			rho = rhos(:,6); % mean density
 			T = Ts(:,2); % atmospheric temperature
-
-			M = sum(rhos(:,self.idx) .* self.Mi, 2) ./ sum(rhos(:,self.idx), 2); % mean molecular weight
-			P = rho .* self.Ru ./ M .* T;
+			Mw = sum(rhos(:,self.idx) .* self.Mi, 2) ./ sum(rhos(:,self.idx), 2); % mean molecular weight
+			P = rho .* self.Ru ./ Mw .* T;
 		end
 
-		function [MFP, a] = rarefaction(self, h, lat, lon, doy, tod)
-			if nargin == 2
-				[~, P, T, M] = self.model(h);
-			elseif nargin == 6
-				[~, P, T, M] = self.model(h, lat, lon, doy, tod);
-			else
-				ME = MException('AtmosphereNRLMSISE:rarefaction:input', 'Unexpected number of inputs: %d', nargin);
-				throw(ME);
-			end
+		function [rho, MFP, a] = trajectory(self, t, alt, lat, lon)
+			dateandtime = self.dt + seconds(t);
+			[rho, P, T, Mw] = self.model(alt, lat, lon, dateandtime);
 
-			V = sqrt(8 * self.Ru * T ./ (pi * M));
-			nu = 4 * self.sigma^2 * self.NA * P .* sqrt(pi ./ (M * self.Ru .* T));
+			% Mean Free Path
+			V = sqrt(8 * self.Ru * T ./ (pi * Mw));
+			nu = 4 * self.sigma^2 * self.NA * P .* sqrt(pi ./ (Mw * self.Ru .* T));
 			MFP = V ./ nu;
 
-			a = sqrt(self.gamma * self.Ru ./ M .* T);
+			% Speed of Sound
+			a = sqrt(self.gamma * self.Ru ./ Mw .* T);
 		end
 	end
 end

@@ -5,11 +5,7 @@ classdef AtmosphereStd76 < Atmosphere
 	% atmospheric model from Schlatter (2009), based on a
 	% thermospheric exotemperature of 1000 K
 
-	% Properties:
-	%	data	 - Tabulated values that define US Standard 76
-	%	interpol - Interpolation method (default: 'pchip')
-
-	properties
+	properties (Access = protected, Constant)
 		%       z [km], rho [kg/m^3], T [K]  , Mw [kg/kmol], lambda[m], P [Pa]
 		data = [0     , 1.23E+00    , 288.15 , 28.96       , 6.63E-08 , 101341.32;
 		        20    , 8.89E-02    , 216.65 , 28.96       , 9.14E-07 , 5530.20  ;
@@ -33,43 +29,52 @@ classdef AtmosphereStd76 < Atmosphere
 		% Default interpolation technique to
 		% Piecewise Cubic Hermite Interpolating Polynomial
 		interpol = 'pchip';
+
+		% Heat capacity ratio
+		gamma = 1.4;
 	end
 
 	methods
-		function [P, T, rho] = model(this, h)
-			% Returns most basic data from the atmospheric model by
+		function [rho, P, T] = model(self, h)
+			% Returns most basic data from the atmospheric model via
 			% simple 1D interpolation
 			%
 			% Parameters:
-			%	h - Altitude [m], relative to the Earth
+			%   h   := Altitude [m], relative to the Earth
 			%
 			% Return values:
-			%	T	- Temperature [K]
-			%	P	- Pressure (Pa)
-			%	rho - Density [kg/m^3]
+			%   T   := Temperature [K]
+			%   P   := Pressure [Pa]
+			%   rho := Density [kg/m^3]
 
 			h = h / 1e3; % [m] -> [km] for interpolation
 
 			% Interpolate
-			P = interp1(this.data(:, 1), this.data(:, 6), h, this.interpol);
-			T = interp1(this.data(:, 1), this.data(:, 3), h, this.interpol);
-			rho = interp1(this.data(:, 1), this.data(:, 2), h, this.interpol);
+			rho = interp1(self.data(:, 1), self.data(:, 2), h, self.interpol);
+			P = interp1(self.data(:, 1), self.data(:, 6), h, self.interpol);
+			T = interp1(self.data(:, 1), self.data(:, 3), h, self.interpol);
 		end
 
-		function [Mw, lambda] = fluid(this, h)
+		function [Mw, lambda] = fluid(self, h)
 			% Returns data related to the fluid in the atmosphere
 			%
 			% Parameters:
-			%	h - Altitude [m], relative to the Earth
+			%   h       := Altitude [m], relative to the Earth
 			%
 			% Return values:
-			%	M		- Molecular weight [kg/mol]
-			%	lambda	- Mean free path [m]
+			%   Mw      := Molecular weight [kg/mol]
+			%   lambda  := Mean free path [m]
 
 			h = h / 1e3; % [m] -> [km] for interpolation
 
-			Mw = interp1(this.data(:, 1), this.data(:, 4) / 1e3, h, this.interpol);
-			lambda = interp1(this.data(:, 1), this.data(:, 5) / 1e3, h, this.interpol);
+			Mw = interp1(self.data(:, 1), self.data(:, 4) / 1e3, h, self.interpol);
+			lambda = interp1(self.data(:, 1), self.data(:, 5) / 1e3, h, self.interpol);
+		end
+
+		function [rho, MFP, a] = trajectory(self, ~, alt, ~, ~)
+			[rho, ~, T] = self.model(alt);
+			[Mw, MFP] = self.fluid(alt);
+			a = sqrt(self.gamma .* Ru ./ Mw .* T);
 		end
 	end
 end

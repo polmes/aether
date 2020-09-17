@@ -9,7 +9,7 @@ classdef AtmosphereCOESA < Atmosphere
 	% [1] "The 1976 Standard Atmosphere Above 86-km Altitude"
 	%     https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19770003812.pdf
 
-	properties
+	properties (Access = protected, Constant)
 		action = 'None'; % show warning/error if out of range?
 
 		%       h [km], MFP [m]
@@ -43,19 +43,11 @@ classdef AtmosphereCOESA < Atmosphere
 			[T, ~, P, rho] = atmoscoesa(h, self.action);
 		end
 
-		function [MFP, a] = rarefaction(self, h)
-			h = h / 1e3; % [m] -> [km] for interpolation
+		function [rho, MFP, a] = trajectory(self, ~, alt, ~, ~)
+			[~, a, ~, rho] = atmoscoesa(alt, self.action);
+
+			h = alt / 1e3; % [m] -> [km] for interpolation
 			MFP = interp1(self.data(:,1), self.data(:,2), h, self.interpol);
-			[~, a] = atmoscoesa(h, self.action);
-
-			% % Get state
-			% [rho, P, T] = self.model(h);
-
-			% % Constants
-			% sigma = 3.65e-10 % effective collision diameter [m]
-			% V = sqrt(8 * R * T / (pi * M)); % mean particle speed [m/s]
-			% nu = 4 * sigma^2 * self.NA * P * sqrt(pi / (M * Ru * T)); % mean collision frequency [1/s]
-			% MFP = V / nu;
 		end
 	end
 end

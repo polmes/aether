@@ -10,10 +10,7 @@ earth.R = 6371e3; % average radius [m]
 earth.M = 5.97237e24; % mass [kg]
 
 % Atmosphere model initialization
-atm.lat = 0; % initial latitude [rad]
-atm.lon = 0; % initial longitude [rad]
-atm.date = '1967/11/09'; % Apollo 4 mission date [yyyy/MM/dd]
-atm.hrs = 20; % 20:00h UTC
+atm.datetime = '1967/11/09 20:00:00'; % Apollo 4 mission date and UTC time ['yyyy/MM/dd HH:mm:ss']
 
 % Max integration time
 T = 2000; % [s]

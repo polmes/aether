@@ -4,10 +4,10 @@ classdef Atmosphere < handle
 
 	properties (Constant)
 		% Atmosphere (edge) limit = Entry Interface (EI)
-		lim = 120e3; % [m]
+		lim = 121.92e3; % [m] = 400k ft
 	end
 
-	properties (Access = private, Constant)
+	properties (Access = protected, Constant)
 		% Universal Gas Constant
 		Ru = 8.31446261815324; % [J/(mol.K)]
 
@@ -16,6 +16,7 @@ classdef Atmosphere < handle
 	end
 
 	methods (Abstract)
-		[rho, P, T] = model(self, h)
+		% Standard method to get atmospheric properties during trajectory propgation
+		[rho, MFP, a] = trajectory(self, t, alt, lat, lon)
 	end
 end

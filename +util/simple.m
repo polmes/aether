@@ -12,7 +12,7 @@ function simple(t, S, sc, pl)
 	th = asin(2 * (q0.*q2 - q3.*q1));
 	ps = atan2(2 * (q0.*q3 + q1.*q2), 1 - 2 * (q2.^2 + q3.^2));
 	alpha = atan2(S(:,10), S(:,8));
-	[MFP, a] = pl.atm.rarefaction(alt);
+	[~, MFP, a] = pl.atm.trajectory(t, alt, lat, lon);
 	Kn = MFP / sc.L;
 	M = Uinf ./ a;
 	CL = sc.Cx('CL', alpha, Kn, M);
@@ -24,7 +24,6 @@ function simple(t, S, sc, pl)
 	hold('on');
 	plot3(x/1e3, z/1e3, y/1e3);
 	plot3(0, 0, 0, 'k*');
-% 	axis('equal');
 	xlabel('$X$ [km]');
 	ylabel('$Y$ [km]');
 	zlabel('$Z$ [km]');
@@ -53,28 +52,28 @@ function simple(t, S, sc, pl)
 	plot(t, M);
 	ylabel('Mach');
 	xlim([0 inf]);
-	
+
 	% Altitude vs. velocity
 	figure;
 	plot(Uinf, alt / 1e3);
 	grid('on');
 	xlabel('Velocity [m/s]');
 	ylabel('Altitude [km]');
-	
+
 	% Mach vs. velocity
 	figure;
 	plot(M, alt / 1e3);
 	grid('on');
 	xlabel('Mach');
 	ylabel('Altitude [km]');
-	
+
 	% Altitude vs. range
 	figure;
 	plot(ran / 1e3, alt / 1e3);
 	grid('on');
 	xlabel('Range [km]');
 	ylabel('Altitude [km]')
-	
+
 	% Rarefaction + AoA vs. time
 	figure;
 	grid('on');

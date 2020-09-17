@@ -163,16 +163,14 @@ classdef Engine < handle
 		% function Fg = gravity(self, ~, sc, pl)
 		% end
 
-		function [Fa, Ma] = aerodynamics(self, ~, sc, pl)
+		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
 			% Angle of Attack
 			Uinf = norm(self.U);
 			alpha = atan2(self.U(3), self.U(1));
 			beta = asin(self.U(2) / Uinf);
 
 			% Environment
-			alt = self.X(1) - pl.R;
-			rho = pl.atm.model(alt);
-			[MFP, a] = pl.atm.rarefaction(alt);
+			[rho, MFP, a] = pl.atm.trajectory(t, self.X(1) - pl.R, self.X(2), self.X(3));
 			Kn = MFP / sc.L;
 			M = Uinf / a;
 
