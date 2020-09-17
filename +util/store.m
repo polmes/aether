@@ -1,4 +1,17 @@
 function store(name, varargin)
+	% util.store(name, a, b, ...)
+	% Save variables a, b, ... in mat/name.mat
+	%
+	% util.store(name, 'A', a, 'B', b, 'ProvidedNames', true)
+	% Save variables a, b, ... with provided names 'A', 'B', ...
+	%
+	% util.store(..., Name, Value)
+	% Pass additional options that can be specified:
+	%   'DataDir'       (String)    Directory in which to save data (relative to project root)
+	%   'DateStamp'     (Boolean)   Append date in format '_yyy-MM-dd' to file name (default: false)
+	%   'AsStructure'   (Boolean)   Save all the variables in a structured called data (default: false)
+	%   'OverWrite'     (Boolean)   Allow overwriting files with the same name (default: false)
+
 	disp('Saving data...');
 
 	% Parse key-value argument pairs, separate the rest
