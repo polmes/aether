@@ -1,0 +1,34 @@
+{
+	"spacecraft": {
+		"type": "capsule",
+		"mass": 5856.9,
+		"length": 3.9116,
+		"nose": 4.6939,
+		"inertia": [8000, 7000, 7000],
+		"database": "apolloKn",
+		"deploy": 7.3e3
+	},
+	"planet": {
+		"body": "Earth",
+		"type": "Spherical",
+		"atmosphere": {
+			"model": "NRLMSISE",
+			"directory": ""
+		}
+	},
+	"initial": {
+		"datetime": "1967/11/09 20:00:00",
+		"altitude": 121.92e3,
+		"latitude": 0,
+		"longitude": 0,
+		"velocity": 11140,
+		"flightpath": -7.01,
+		"heading": 0,
+		"attitude": [0, 0, 0],
+		"angular": [0, 0, 0]
+	},
+	"integration": {
+		"engine": "",
+		"maxtime": 2000
+	}
+}

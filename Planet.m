@@ -16,14 +16,15 @@ classdef Planet < matlab.mixin.Copyable
 
 	methods
 		% Constructor
-		function this = Planet(R, M, atm) % and T (period)
+		function self = Planet(data) % and T (period)
 			% M = planet mass [kg]
 			% T = rotation period [s]
-			if nargin > 0
-				this.R = R;
-				this.mu = M * this.G;
-				% this.omega = 2*pi / T;
-				this.atm = atm;
+			if nargin
+				% Note: data *will* have the following properties since they are taken from defaults if not provided
+				self.R = data.R;
+				self.mu = self.G * data.M;
+				% self.omega = 2*pi / T;
+				self.atm = data.atm;
 			end
 		end
 	end

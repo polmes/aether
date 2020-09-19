@@ -1,30 +1,32 @@
 classdef Spacecraft < handle
 	properties
 		m; % mass [kg]
-		L; % characteristic length [m]
+		L; % characteristic length or diameter [m]
 		R; % nose radius [m]
 		S; % reference surface area [m^2]
 		I; % inertia matrix [kg.m^2]
-		db; % struct with aerodynamic coefficients
-		deploy; % altitude at which to deploy drogue/parachutes
+		db; % struct with aerodynamic coefficients f(alpha, M, Kn)
+		deploy; % altitude at which to deploy drogue/parachutes [m]
 	end
 
-	properties (Constant)
+	properties (Constant, Access = protected)
 		datadir = 'constants/';
 	end
 
 	methods
 		% Constructor
-		function self = Spacecraft(m, L, R, I, file, alt)
-			self.m = m;
-			self.L = L;
-			self.R = R;
-			self.S = pi * self.L^2 / 4;
-			self.I = diag(I);
-			self.deploy = alt;
+		function self = Spacecraft(data)
+			if nargin
+				% Note: data *will* have the following properties since they are taken from defaults if not provided
+				self.m = data.mass;
+				self.L = data.length;
+				self.R = data.nose;
+				self.I = diag(data.inertia);
+				self.deploy = data.deploy;
 
-			% Store database as struct
-			self.db = load([self.datadir file '.mat']);
+				% Store database as struct
+				self.db = util.open(data.database, 'DataDir', self.datadir);
+			end
 		end
 
 		% Aerodynamic coefficients interpolant

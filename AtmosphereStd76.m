@@ -35,6 +35,9 @@ classdef AtmosphereStd76 < Atmosphere
 	end
 
 	methods
+		function self = AtmosphereStd76(~)
+		end
+
 		function [rho, P, T] = model(self, h)
 			% Returns most basic data from the atmospheric model via
 			% simple 1D interpolation

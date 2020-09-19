@@ -38,6 +38,9 @@ classdef AtmosphereCOESA < Atmosphere
 	end
 
 	methods
+		function self = AtmosphereCOESA(~)
+		end
+
 		function [rho, P, T] = model(self, h)
 			% h = alt [m]
 			[T, ~, P, rho] = atmoscoesa(h, self.action);

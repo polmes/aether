@@ -13,9 +13,9 @@ classdef AtmosphereNRLMSISE < Atmosphere
 	end
 
 	methods
-		function self = AtmosphereNRLMSISE(dateandtime)
+		function self = AtmosphereNRLMSISE(data)
 			% Initial date and time for Day of Year + Time of Day
-			self.dt = datetime(dateandtime, 'InputFormat', 'yyyy/MM/dd HH:mm:ss');
+			self.dt = datetime(data.dateandtime, 'InputFormat', 'yyyy/MM/dd HH:mm:ss');
 		end
 
 		function [rho, P, T, Mw] = model(self, alt, lat, lon, dateandtime)
