@@ -56,11 +56,8 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 			data.analysis = analysisdata;
 			opts = data.analysis;
 		catch
-			warning('Error loading analysis data. Reverting back to defaults...');
-			if isfield(data, 'analysis')
-				data = rmfield(data, 'analysis');
-			end
-			opts = [];
+			ME = MException('util:pre', 'Error loading analysis data');
+			throw(ME);
 		end
 	end
 

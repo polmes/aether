@@ -27,8 +27,10 @@ function QoI = getQoI(t, S, ie, sc, pl)
 
 	% Pre
 	alt = S(:,1) - pl.R;
+	lat = S(:,2);
+	lon = S(:,3);
 	Uinf = sqrt(sum(S(:,8:10).^2, 2));
-	rho = pl.atm.model(alt);
+	rho = pl.atm.trajectory(t, alt, lat, lon);
 
 	% Status
 	st = ie;
@@ -46,7 +48,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	maxU = max(Uinf);
 
 	% Max-g
-% 	maxG = max(sqrt(sum((diff(S(:,8:10)) ./ diff(t)).^2, 2)));
+	% maxG = max(sqrt(sum((diff(S(:,8:10)) ./ diff(t)).^2, 2)));
 	maxG = max(abs(diff(Uinf) ./ diff(t)));
 
 	% Max-Q
