@@ -1,7 +1,0 @@
-stdv = 0.05;
-
-NS = 5000;
-
-tol = [1e-3, 1e-5];
-
-file = 'apolloM';
