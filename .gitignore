@@ -1,9 +1,10 @@
 # MATLAB temp files
 *.m~
 
-# Data directory
+# Data directories
 mat/
-mat
+fig/
 
 # Input files
 *_inputs.m
+json/*_*.json
