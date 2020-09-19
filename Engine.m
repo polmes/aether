@@ -15,6 +15,10 @@ classdef Engine < handle
 	methods % Public
 		% Constructor
 		function self = Engine(varargin)
+			self.options(varargin{:});
+		end
+
+		function options(self, varargin)
 			% 'RelTol', 'AbsTol', 'Integrator' key-value argument pairs
 			p = inputParser;
 			p.addParameter('RelTol', 1e-12);
@@ -32,7 +36,7 @@ classdef Engine < handle
 		% Main method called to integrate in time
 		function [t, S, ie] = integrate(self, T, S, sc, pl)
 			% Prepare S0 if necessary
-			if numel(S) < 12
+			if numel(S) < 13
 				% [alt, Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r]
 				S0 = self.prepare(S, pl);
 			elseif numel(S) == 13
