@@ -1,4 +1,4 @@
-function CxMC_post(casefile, analysisfile)
+function postCxMC(casefile, analysisfile)
 	%% INPUT
 
 	% Handle different cases
