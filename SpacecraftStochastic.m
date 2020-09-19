@@ -6,8 +6,9 @@ classdef SpacecraftStochastic < Spacecraft
 
 	methods
 		% Constructor
-		function self = SpacecraftStochastic(m, L, R, I, file, alt, inputs)
-			self = self@Spacecraft(m, L, R, I, file, alt);
+		function self = SpacecraftStochastic(sc, inputs)
+			% sc    :=  Spacecraft object (non-Stochastic)
+			self = self.copy(sc); % @Spacecraft(sc);
 
 			% Save mean values and variances
 			for i = 1:numel(inputs)
@@ -19,6 +20,16 @@ classdef SpacecraftStochastic < Spacecraft
 			% Add random noise to 3 Cx's: CL, CD, Cm
 			for i = 1:numel(Y)
 				self.db.(self.Cn{i}) = self.mean.(self.Cn{i}) * Y(i);
+			end
+		end
+	end
+
+	methods (Access = protected)
+		function self = copy(self, obj)
+			for pr = metaclass(self).PropertyList.'
+				if isprop(obj, pr.Name) && ismember(pr.SetAccess, {'public', 'protected'})
+					self.(pr.Name) = obj.(pr.Name);
+				end
 			end
 		end
 	end
