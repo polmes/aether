@@ -19,14 +19,23 @@ function store(name, varargin)
 	vals = {'mat/', false, false, false, false}; % default values
 	rest = true(1, nargin-1); % rest of arguments are variables to save
 	for i = 1:numel(opts)
-		if any(strcmp(varargin, opts{i}))
-			idx = find(strcmp(varargin, opts{i}));
+		if any(strcmpi(varargin, opts{i}))
+			idx = find(strcmpi(varargin, opts{i}));
 			vals{i} = varargin{idx + 1};
 			rest([idx, idx+1]) = false;
 		end
 	end
 	[datadir, datestamp, asstructure, providednames, overwrite] = vals{:};
 	varsin = varargin(rest);
+
+	% Also works with provided full path
+	[filedir, name, ext] = fileparts(name);
+	if isempty(filedir)
+		filedir = datadir;
+	end
+	if isempty(ext)
+		ext = '.mat';
+	end
 
 	% Save as...
 	if ~datestamp
@@ -35,10 +44,11 @@ function store(name, varargin)
 		filename = [name '_' char(datetime('now', 'Format', 'yyy-MM-dd'))];
 	end
 
+
 	% Avoid overwriting files...
-	if ~overwrite && exist([datadir filename '.mat'], 'file')
+	if ~overwrite && exist(fullfile(filedir, [filename ext]), 'file')
 		uid = 0;
-		while exist(['mat/' filename '.mat'], 'file')
+		while exist(fullfile(filedir, [filename ext]), 'file')
 			uid = uid + 1;
 			filename = [name '_' num2str(uid)];
 		end
@@ -46,8 +56,8 @@ function store(name, varargin)
 	end
 
 	% Create directory if it does not exist
-	if ~exist(datadir, 'dir')
-		mkdir(datadir);
+	if ~exist(filedir, 'dir')
+		mkdir(filedir);
 	end
 
 	% Create temporary structure...
@@ -65,10 +75,11 @@ function store(name, varargin)
 	data = cell2struct(vars, fields, 2);
 
 	% ... and save
+	filepath = fullfile(filedir, [filename ext]);
 	if ~asstructure
-		save([datadir filename '.mat'], '-struct', 'data', '-v7.3');
+		save(filepath, '-struct', 'data', '-v7.3');
 	else
-		save([datadir filename '.mat'], 'data', '-v7.3');
+		save(filepath, 'data', '-v7.3');
 	end
 	disp('Data saved.');
 end
