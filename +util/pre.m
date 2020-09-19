@@ -19,10 +19,10 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	% How many inputs?
 	hascase = false;
 	hasanalysis = false;
-	if nargin > 0
+	if nargin > 0 && ~isempty(casefile)
 		hascase = true;
 	end
-	if nargin > 1
+	if nargin > 1 && ~isempty(analysisfile)
 		hasanalysis = true;
 	end
 
