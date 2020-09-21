@@ -7,12 +7,9 @@ Welcome!
 ## Geting started
 
 In order to run a case:
-1. Rename the example input file `<name>_inputs.m.example` to just just `<name>_inputs.m`
-2. `cd` into the root folder
-3. Type `cases.<name>`
-4. Analyze the results with `analysis.<name>`
-
-New cases can be defined in the `+cases` and `+analysis` directories to have access to all the package objects.
+1. Choose an analysis to run from the `+run` directory, e.g. `<name>.mat`.
+2. New cases and options for the study can be defined via JSON configuration files. See `json/defaults.json` and `json/<name>.json` for examples.
+3. Type `run.<name> [case.json] [analysis.json]` and enjoy!
 
 ## Code structure
 
