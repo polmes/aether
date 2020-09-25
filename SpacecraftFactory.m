@@ -1,11 +1,11 @@
-classdef FactorySpacecraft < Factory
+classdef SpacecraftFactory < Factory
 	properties (Constant, Access = protected)
 		defaults = {'capsule', @SpacecraftCapsule};
 		exception = 'Unkown spacecraft type provided';
 	end
 
 	methods
-		function self = FactorySpacecraft(varargin)
+		function self = SpacecraftFactory(varargin)
 			self = self@Factory(varargin);
 		end
 

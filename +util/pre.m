@@ -62,15 +62,15 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	end
 
 	% Generate Spacecraft object
-	sf = FactorySpacecraft;
+	sf = SpacecraftFactory;
 	sc = sf.generate(data.spacecraft);
 
 	% Generate Atmosphere object
-	af = FactoryAtmosphere;
+	af = AtmosphereFactory;
 	at = af.generate(data.planet.atmosphere, data.initial.datetime);
 
 	% Generate Planet object
-	pf = FactoryPlanet;
+	pf = PlanetFactory;
 	pl = pf.generate(data.planet, at);
 
 	% Generate array of initial conditions
@@ -90,7 +90,7 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 
 
 	% Generate Engine object
-	ef = FactoryEngine;
+	ef = EngineFactory;
 	en = ef.generate(data.integration);
 
 	% Max integration time

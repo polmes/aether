@@ -1,4 +1,4 @@
-classdef FactoryEngine < Factory
+classdef EngineFactory < Factory
 	properties (Constant, Access = protected)
 		defaults = {'', @Engine};
 		exception = 'Unkown engine type provided';
@@ -6,7 +6,7 @@ classdef FactoryEngine < Factory
 	end
 
 	methods
-		function self = FactoryEngine(varargin)
+		function self = EngineFactory(varargin)
 			self = self@Factory(varargin);
 		end
 

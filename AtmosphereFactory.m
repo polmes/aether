@@ -1,11 +1,11 @@
-classdef FactoryAtmosphere < Factory
+classdef AtmosphereFactory < Factory
 	properties (Constant, Access = protected)
 		defaults = {'GRAM', @nasa.AtmosphereGRAM, 'MSIS', @AtmosphereMSIS, 'COESA', @AtmosphereCOESA, 'Std76', @AtmosphereStd76};
 		exception = 'Unkown atmosphere model provided';
 	end
 
 	methods
-		function self = FactoryAtmosphere(varargin)
+		function self = AtmosphereFactory(varargin)
 			self = self@Factory(varargin);
 		end
 

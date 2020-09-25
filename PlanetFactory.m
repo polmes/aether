@@ -1,4 +1,4 @@
-classdef FactoryPlanet < Factory
+classdef PlanetFactory < Factory
 	properties (Constant, Access = protected)
 		defaults = {'Spherical', @Planet};
 		exception = 'Unkown planetary model provided';
@@ -6,7 +6,7 @@ classdef FactoryPlanet < Factory
 	end
 
 	methods
-		function self = FactoryPlanet(varargin)
+		function self = PlanetFactory(varargin)
 			self = self@Factory(varargin);
 		end
 
