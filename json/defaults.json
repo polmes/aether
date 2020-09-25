@@ -11,10 +11,7 @@
 	"planet": {
 		"body": "Earth",
 		"type": "Spherical",
-		"atmosphere": {
-			"model": "NRLMSISE",
-			"directory": ""
-		}
+		"atmosphere": "NRLMSISE"
 	},
 	"initial": {
 		"datetime": "1967/11/09 20:00:00",
