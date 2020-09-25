@@ -13,12 +13,13 @@ function exception(msg, varargin)
 	filedir = fileparts(st.file);
 	relpath = filedir((numel(pwd) + 2):end);
 	if ~isempty(relpath)
-		relpath = strrep(relpath, filesep, ':');
 		relpath = strrep(relpath, '+', '');
+		relpath = strrep(relpath, filesep, ':');
 	end
 
 	% Complete error ID
-	id = ['aether:' relpath strrep(st.name, '.', ':')];
+	[~, repo] = fileparts(pwd);
+	id = [repo ':' relpath ':' strrep(st.name, '.', ':')];
 
 	ME = MException(id, msg, varargin{:});
 	throwAsCaller(ME);
