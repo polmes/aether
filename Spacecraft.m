@@ -35,8 +35,7 @@ classdef Spacecraft < handle
 					% [Ixx; Ixy; Ixz; Ixy; Iyy; Iyz; Ixz; Iyz; Izz]
 					self.I = reshape(I, [3 3]).';
 				else
-					ME = MException('Spacecraft:constructor', 'Unexpected length of inertia vector');
-					throw(ME);
+					util.exception('Unexpected length of inertia vector');
 				end
 
 

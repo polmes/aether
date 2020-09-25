@@ -27,8 +27,7 @@ classdef Factory < handle
 				constructor = dict(key);
 				obj = constructor(varargin{:});
 			catch
-				ME = MException(class(self), self.exception);
-				throw(ME);
+				util.exception(self.exception);
 			end
 		end
 

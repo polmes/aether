@@ -56,8 +56,7 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 			data.analysis = analysisdata;
 			opts = data.analysis;
 		catch
-			ME = MException('util:pre', 'Error loading analysis data');
-			throw(ME);
+			util.exception('Error loading analysis data');
 		end
 	end
 

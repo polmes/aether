@@ -43,8 +43,7 @@ classdef Engine < handle
 				% [rad, lat, lon, q0, q1, q2, q3, u, v, w, p, q, r]
 				S0 = S;
 			else
-				ME = MException('Engine:integrate:input', 'Unexpected length of array: %d', numel(S));
-				throw(ME);
+				util.exception('Unexpected length of array: %d', numel(S));
 			end
 
 			self.opts.Events = @(t, S) self.events(t, S, sc, pl);
@@ -99,8 +98,7 @@ classdef Engine < handle
 
 				S0 = [rad; lat; lon; q0; q1; q2; q3; u; v; w; p; q; r];
 			else
-				ME = MException('Engine:prepare:input', 'Unexpected length of array: %d', numel(S));
-				throw(ME);
+				util.exception('Unexpected length of array: %d', numel(S));
 			end
 		end
 	end

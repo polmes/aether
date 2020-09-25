@@ -25,8 +25,7 @@ classdef PlanetFactory < Factory
 					argdata.R = data.body.radius;
 					argdata.M = data.body.mass;
 				catch
-					ME = MException(class(self), 'Custom planetary body is missing some properties');
-					throw(ME);
+					util.exception('Custom planetary body is missing some properties');
 				end
 			else
 				%   "body": "Earth" or "Mars" or ...
@@ -36,8 +35,7 @@ classdef PlanetFactory < Factory
 					argdata.R = body.radius;
 					argdata.M = body.mass;
 				catch
-					ME = MException(class(self), 'Unknown planetary body with name: %s', data.body);
-					throw(ME);
+					util.exception('Unknown planetary body with name: %s', data.body);
 				end
 			end
 			argdata.atm = at;
