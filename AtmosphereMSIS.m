@@ -24,7 +24,7 @@ classdef AtmosphereMSIS < Atmosphere
 			% Note: year is ignored, so is taken as 2020
 			doy = day(dateandtime, 'DayOfYear');
 			tod = seconds(timeofday(dateandtime));
-			[Ts, rhos] = atmosnrlmsise00(alt, lat, lon, 2020, doy, tod, 150, 150, 4);
+			[Ts, rhos] = atmosnrlmsise00(alt, rad2deg(lat), rad2deg(lon), 2020, doy, tod, 150, 150, 4);
 
 			% Quantities of Interest
 			rho = rhos(:,6); % mean density
