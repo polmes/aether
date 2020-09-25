@@ -1,4 +1,4 @@
-classdef AtmosphereNRLMSISE < Atmosphere
+classdef AtmosphereMSIS < Atmosphere
 	properties (Access = protected)
 		dt; % date and time
 	end
@@ -13,7 +13,7 @@ classdef AtmosphereNRLMSISE < Atmosphere
 	end
 
 	methods
-		function self = AtmosphereNRLMSISE(dateandtime)
+		function self = AtmosphereMSIS(dateandtime)
 			% Initial date and time for Day of Year + Time of Day
 			self.dt = datetime(dateandtime, 'InputFormat', 'yyyy/MM/dd HH:mm:ss');
 		end

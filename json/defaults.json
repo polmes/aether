@@ -11,7 +11,7 @@
 	"planet": {
 		"body": "Earth",
 		"type": "Spherical",
-		"atmosphere": "NRLMSISE"
+		"atmosphere": "MSIS"
 	},
 	"initial": {
 		"datetime": "1967/11/09 20:00:00",
