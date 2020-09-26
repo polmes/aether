@@ -9,7 +9,7 @@ Welcome!
 In order to run a case:
 1. Choose an analysis to run from the `+run` directory, e.g. `<name>.mat`.
 2. New cases and options for the study can be defined via JSON configuration files. See `json/defaults.json` and `json/<name>.json` for examples.
-3. Type `run.<name> [case.json] [analysis.json]` and enjoy!
+3. Type `run.<name>([case.json], [analysis.json])` and enjoy!
 
 ## Code structure
 
