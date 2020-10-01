@@ -87,7 +87,6 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	[p, q, r] = ang{:};
 	S0 = [alt, Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r];
 
-
 	% Generate Engine object
 	ef = EngineFactory;
 	en = ef.generate(data.integration);

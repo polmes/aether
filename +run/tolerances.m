@@ -12,6 +12,9 @@ function tolerances(casefile, analysisfile)
 
 	% Solver setup
 	engine.options('ShowWarnings', false);
+	if isfield(opts, 'integrator')
+		engine.options('Integrator', eval(['@' opts.integrator]));
+	end
 
 	% Init
 	NT = numel(tol);
@@ -39,6 +42,6 @@ function tolerances(casefile, analysisfile)
 	end
 
 	% Save data
-	filename = [mfilename '_' file '_' num2str(tol(1), '%.0e') '_' num2str(tol(NT), '%.0e')];
+	filename = [mfilename '_' num2str(tol(1), '%.0e') '_' num2str(tol(NT), '%.0e')];
 	util.store(filename, tol, t, S, pl, sc);
 end

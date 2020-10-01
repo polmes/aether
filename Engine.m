@@ -1,9 +1,10 @@
 classdef Engine < handle
-	properties
+	properties (Access = protected)
 		opts = odeset();
+		init = false;
 		integrator;
 		showwarnings;
-		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'}; % , 'Reached escape velocity'};
+		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'};
 
 		% State vectors
 		X = zeros(3, 1);
@@ -21,10 +22,18 @@ classdef Engine < handle
 		function options(self, varargin)
 			% 'RelTol', 'AbsTol', 'Integrator' key-value argument pairs
 			p = inputParser;
-			p.addParameter('RelTol', 1e-12);
-			p.addParameter('AbsTol', 1e-13);
-			p.addParameter('Integrator', @ode113); % or @ode45
-			p.addParameter('ShowWarnings', true);
+			if ~self.init
+				p.addParameter('RelTol', 1e-12);
+				p.addParameter('AbsTol', 1e-13);
+				p.addParameter('Integrator', @ode113); % or @ode45
+				p.addParameter('ShowWarnings', true);
+				self.init = true;
+			else
+				p.addParameter('RelTol', self.opts.RelTol);
+				p.addParameter('AbsTol', self.opts.AbsTol);
+				p.addParameter('Integrator', self.integrator);
+				p.addParameter('ShowWarnings', self.showwarnings);
+			end
 			p.parse(varargin{:});
 
 			self.opts.RelTol = p.Results.RelTol;
@@ -105,7 +114,7 @@ classdef Engine < handle
 
 	methods (Access = protected)
 		% 6-DOF equations of motion
-		function dS = motion(self, t, S, sc, pl)
+		function [dS, dU] = motion(self, t, S, sc, pl)
 			% sc = [Spacecraft]
 			% pl = [Planet]
 
@@ -200,7 +209,7 @@ classdef Engine < handle
 
 		function [val, ter, dir] = events(~, ~, S, sc, pl)
 			% Can be extended by overriding / concatenating to its results
-			% Note: [DeployAltitude, SkipAtmosphere, EscapeVelocity]
+			% Note: [DeployAltitude, SkipAtmosphere]
 			rad = S(1);
 			alt = rad - pl.R;
 			Uinf = norm(S(8:10)); % u, v, w
