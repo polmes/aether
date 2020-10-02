@@ -6,6 +6,7 @@ classdef Planet < matlab.mixin.Copyable
 		R; % radius [m]
 		mu; % standard gravitational parameter [m^3/s^2]
 		atm; % atmospheric model [Atmosphere]
+		ellipsoid; % reference ellipsoid object
 	end
 
 	properties (Constant)
@@ -29,5 +30,11 @@ classdef Planet < matlab.mixin.Copyable
 		function g = gravity(self, rad, ~, ~)
 			g = self.mu ./ rad.^2;
 		end
+	end
+
+	methods (Abstract)
+		[lat, lon, alt] = xyz2lla(self, x, y, z);
+		[x, y, z] = lla2xyz(self, lat, lon, alt);
+		ran = greatcircle(lat1, lon1, lat2, lon2);
 	end
 end

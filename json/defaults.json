@@ -26,7 +26,7 @@
 		"angular": [0, 0, 0]
 	},
 	"integration": {
-		"engine": "XYZ",
+		"engine": "",
 		"maxtime": 2000
 	}
 }

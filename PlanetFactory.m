@@ -1,6 +1,6 @@
 classdef PlanetFactory < Factory
 	properties (Constant, Access = protected)
-		defaults = {'Spherical', @Planet};
+		defaults = {'Spherical', @PlanetSpherical};
 		exception = 'Unkown planetary model provided';
 		datadir = 'constants/';
 	end

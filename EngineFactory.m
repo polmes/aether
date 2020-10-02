@@ -1,6 +1,6 @@
 classdef EngineFactory < Factory
 	properties (Constant, Access = protected)
-		defaults = {'RLL', @EngineRLL, 'XYZ', @EngineXYZ};
+		defaults = {'', @Engine, 'XYZ', @Engine, 'RLL', @EngineRLL};
 		exception = 'Unkown engine type provided';
 		opts = {'RelTol', 'AbsTol', 'ShowWarnings', 'Integrator'};
 	end

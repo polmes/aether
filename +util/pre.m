@@ -76,7 +76,7 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	% Note: data will *always* have the following fields
 	IC = data.initial;
 	alt = IC.altitude;
-	Uinf = IC.velocity;
+	Umag = IC.velocity;
 	gamma = deg2rad(IC.flightpath);
 	chi = deg2rad(IC.heading);
 	lat = deg2rad(IC.latitude);
@@ -85,7 +85,7 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	[ph, th, ps] = att{:};
 	ang = num2cell(IC.angular);
 	[p, q, r] = ang{:};
-	S0 = [alt, Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r];
+	S0 = [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r];
 
 	% Generate Engine object
 	ef = EngineFactory;

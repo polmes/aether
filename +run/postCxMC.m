@@ -24,7 +24,7 @@ function postCxMC(casefile, analysisfile)
 	for i = 1:NF
 		data = util.open(files(i).name);
 		Qc{i} = data.Q;
-		pl = data.pl;
+		% pl = data.pl;
 		% sc = data.sc(1);
 	end
 	Q = cell2mat(Qc);
@@ -43,7 +43,7 @@ function postCxMC(casefile, analysisfile)
 
 	% QoI of interest
 	Qgood = Q(good, [3 4]);
-	Qgood(:,1) = Qgood(:,1) * pl.R / 1e3; % latitude to range [km]
+	% Qgood(:,1) = Qgood(:,1) * pl.R / 1e3; % latitude to range [km]
 	% [~, a] = pl.atm.rarefaction(sc.deploy);
 	% Qgood(:,2) = Qgood(:,2) / a; % velocity to Mach
 

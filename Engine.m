@@ -51,7 +51,7 @@ classdef Engine < handle
 		function [t, S, ie] = integrate(self, T, S, sc, pl)
 			% Prepare S0 if necessary
 			if numel(S) < 13
-				% [alt, Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r]
+				% [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r]
 				S0 = self.prepare(S, pl);
 			elseif numel(S) == 13
 				% [rad, lat, lon, q0, q1, q2, q3, u, v, w, p, q, r]
@@ -73,28 +73,38 @@ classdef Engine < handle
 		% Generate initial conditions S0
 		function S0 = prepare(S, pl)
 			if numel(S) < 13
-				% [alt, Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r]
+				% [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r]
 
-				% Full radius
+				% Altitude defaults to atmosphere limit
 				if numel(S) > 0
 					alt = S(1);
 				else
-					alt = pl.atm.lim; % default: atmosphere limit
+					alt = pl.atm.lim;
 				end
-				rad = pl.R + alt;
 
-				% Rest of defaults using (circular) orbital speed
-				% def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, pi/2, 0, 0, 0];
-				def = [sqrt(pl.mu / rad), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+				% Other defaults
+				% [gamma, chi, lat, lon, ph, th, ps, p, q, r]
+				def = zeros(1, 10);
 
 				% Complete input state with defaults
-				Ss = num2cell([S(2:end), def(numel(S(2:end))+1:11)]);
-				[Uinf, gamma, chi, lat, lon, ph, th, ps, p, q, r] = Ss{:};
+				Ss = num2cell([S(3:end), def(numel(S(3:end))+1:10)]);
+				[gamma, chi, lat, lon, ph, th, ps, p, q, r] = Ss{:};
+
+				% Full radius
+				[x, y, z] = pl.lla2xyz(lat, lon, alt);
+				rad = norm([x; y; z]);
+
+				% Inertial velocity magnitude defaults to (circular) orbital speed
+				if numel(S) > 1
+					Umag = S(2);
+				else
+					Umag = sqrt(pl.mu / rad);
+				end
 
 				% Velocity components (vehicle frame)
-				u =  Uinf * cos(gamma) * cos(chi);
-				v =  Uinf * cos(gamma) * sin(chi);
-				w = -Uinf * sin(gamma);
+				u =  Umag * cos(gamma) * cos(chi);
+				v =  Umag * cos(gamma) * sin(chi);
+				w = -Umag * sin(gamma);
 
 				% Euler -> Quaternions
 				Q = [cos(ph/2)*cos(th/2)*cos(ps/2) + sin(ph/2)*sin(th/2)*sin(ps/2) ;
@@ -110,19 +120,76 @@ classdef Engine < handle
 				U = Lvb * [u; v; w];
 				u = U(1); v = U(2); w = U(3);
 
-				S0 = [rad; lat; lon; q0; q1; q2; q3; u; v; w; p; q; r];
+				S0 = [x; y; z; q0; q1; q2; q3; u; v; w; p; q; r];
 			else
 				util.exception('Unexpected length of array: %d', numel(S));
 			end
 		end
 	end
 
-	methods (Abstract, Access = protected)
-		% 6-DOF equations of motion
-		dS = motion(self, t, S, sc, pl);
-	end
-
 	methods (Access = protected)
+		% 6-DOF equations of motion
+		function [dS, dU] = motion(self, t, S, sc, pl)
+			% sc = [Spacecraft]
+			% pl = [Planet]
+
+			% State variables
+			Ss = num2cell(S);
+			[x, y, z, q0, q1, q2, q3, u, v, w, p, q, r] = Ss{:};
+
+			% Useful state vectors
+			X = [x; y; z];
+			self.Q = [q0; q1; q2; q3];
+			self.U = [u; v; w];
+			self.W = [p; q; r];
+
+			% Additional state scalars
+			self.rad = norm(X);
+			[self.lat, self.lon, self.alt] = pl.xyz2lla(x, y, z);
+
+			% Quaternion Rotation (B -> I)
+			Lq = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
+			      2*(q1*q2+q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q2*q3-q0*q1)     ;
+			      2*(q1*q3-q0*q2)    , 2*(q0*q1+q2*q3)    , q0^2-q1^2-q2^2+q3^2];
+			Lq(abs(Lq) < 1e-12) = 0; % for numerical stability
+			Lbi = Lq;
+			Lib = Lq.';
+
+			% Position (inertial, inertial axes)
+			dX = Lbi * self.U;
+			dx = dX(1); dy = dX(2); dz = dX(3);
+
+			% Rotation (body w.r.t. inertial)
+			Wq = [0, -p, -q, -r ;
+			      p,  0,  r, -q ;
+			      q, -r,  0,  p ;
+			      r,  q, -p,  0];
+			dQ = 1/2 * Wq * self.Q;
+			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
+
+			% Gravity force (body axes)
+			g = pl.gravity(self.rad, self.lat, self.lon);
+			Fg = Lib * (-sc.m * g) * (X / self.rad);
+
+			% Aerodynamic forces (body axes)
+			[Fa, Ma] = self.aerodynamics(t, sc, pl);
+
+			% Control moments (body axes)
+			Mc = self.controls(t, sc);
+
+			% Velocity (inertial, body axes)
+			F = Fg + Fa;
+			dU = F / sc.m - cross(self.W, self.U);
+			du = dU(1); dv = dU(2); dw = dU(3);
+
+			% Angular velocity (body)
+			M = Ma + Mc;
+			dW = sc.I \ (M - cross(self.W, sc.I * self.W));
+			dp = dW(1); dq = dW(2); dr = dW(3);
+
+			dS = [dx; dy; dz; dq0; dq1; dq2; dq3; du; dv; dw; dp; dq; dr];
+		end
+
 		% Basic aerodynamics
 		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
 			% Angle of Attack

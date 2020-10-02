@@ -1,20 +1,9 @@
-function post(t, S, sc, pl, engine)
+function post(t, S, sc, pl)
 	% Variables
-	if isa(engine, 'EngineRLL')
-		rad = S(:,1); lat = S(:,2); lon = S(:,3);
-		ran = lat * pl.R;
-		x = rad .* cos(lat) .* cos(lon);
-		y = rad .* cos(lat) .* sin(lon);
-		z = rad .* sin(lat);
-	else
-		x = S(:,1); y = S(:,2); z = S(:,3);
-		rad = sqrt(sum([x, y, z].^2, 2));
-		lat = asin(y ./ rad);
-		lon = asin(x ./ (rad .* cos(lat)));
-		ran = lon * pl.R;
-	end
-	alt = rad - pl.R;
-	Uinf = sqrt(sum(S(:,8:10).^2, 2));
+	x = S(:,1); y = S(:,2); z = S(:,3);
+	[lat, lon, alt] = pl.xyz2lla(x, y, z);
+	ran = pl.greatcircle(lat(1), lon(1), lat, lon);
+	Umag = sqrt(sum(S(:,8:10).^2, 2));
 	q0 = S(:,4); q1 = S(:,5); q2 = S(:,6); q3 = S(:,7);
 	ph = atan2(2 * (q0.*q1 + q2.*q3), 1 - 2 * (q1.^2 + q2.^2));
 	th = asin(2 * (q0.*q2 - q3.*q1));
@@ -22,7 +11,7 @@ function post(t, S, sc, pl, engine)
 	alpha = atan2(S(:,10), S(:,8));
 	[~, MFP, a] = pl.atm.trajectory(t, alt, lat, lon);
 	Kn = MFP / sc.L;
-	M = Uinf ./ a;
+	M = Umag ./ a;
 	CL = sc.Cx('CL', alpha, M, Kn);
 	CD = sc.Cx('CD', alpha, M, Kn);
 	Cm = sc.Cx('Cm', alpha, M, Kn);
@@ -54,7 +43,7 @@ function post(t, S, sc, pl, engine)
 	grid('on');
 	xlabel('Time [s]');
 	yyaxis('left');
-	plot(t, Uinf);
+	plot(t, Umag);
 	ylabel('Velocity [m/s]');
 	yyaxis('right');
 	plot(t, M);
@@ -63,7 +52,7 @@ function post(t, S, sc, pl, engine)
 
 	% Altitude vs. velocity
 	figure;
-	plot(Uinf, alt / 1e3);
+	plot(Umag, alt / 1e3);
 	grid('on');
 	xlabel('Velocity [m/s]');
 	ylabel('Altitude [km]');
