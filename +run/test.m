@@ -11,7 +11,7 @@ function test(varargin)
 	toc;
 
 	% Post
-	util.post(t, S, sc, pl);
+	util.post(t, S, sc, pl, engine);
 
 	% Send variables to 'base' workspace for debugging
 	vars = who;

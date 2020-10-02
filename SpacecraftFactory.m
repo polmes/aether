@@ -1,6 +1,6 @@
 classdef SpacecraftFactory < Factory
 	properties (Constant, Access = protected)
-		defaults = {'capsule', @SpacecraftCapsule};
+		defaults = {'Capsule', @SpacecraftCapsule};
 		exception = 'Unkown spacecraft type provided';
 	end
 

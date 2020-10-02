@@ -4,9 +4,7 @@ classdef Planet < matlab.mixin.Copyable
 
 	properties
 		R; % radius [m]
-		% M; % mass [kg]
 		mu; % standard gravitational parameter [m^3/s^2]
-		% omega; % angular velocity [rad/s]
 		atm; % atmospheric model [Atmosphere]
 	end
 
@@ -23,9 +21,13 @@ classdef Planet < matlab.mixin.Copyable
 				% Note: data *will* have the following properties since they are taken from defaults if not provided
 				self.R = data.R;
 				self.mu = self.G * data.M;
-				% self.omega = 2*pi / T;
 				self.atm = data.atm;
 			end
+		end
+
+		% Standard Newtonian Gravity
+		function g = gravity(self, rad, ~, ~)
+			g = self.mu ./ rad.^2;
 		end
 	end
 end

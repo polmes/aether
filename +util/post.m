@@ -1,11 +1,19 @@
-function post(t, S, sc, pl)
+function post(t, S, sc, pl, engine)
 	% Variables
-	rad = S(:,1); lat = S(:,2); lon = S(:,3);
-	ran = lat * pl.R;
+	if isa(engine, 'EngineRLL')
+		rad = S(:,1); lat = S(:,2); lon = S(:,3);
+		ran = lat * pl.R;
+		x = rad .* cos(lat) .* cos(lon);
+		y = rad .* cos(lat) .* sin(lon);
+		z = rad .* sin(lat);
+	else
+		x = S(:,1); y = S(:,2); z = S(:,3);
+		rad = sqrt(sum([x, y, z].^2, 2));
+		lat = asin(y ./ rad);
+		lon = asin(x ./ (rad .* cos(lat)));
+		ran = lon * pl.R;
+	end
 	alt = rad - pl.R;
-	x = rad .* cos(lat) .* cos(lon);
-	y = rad .* cos(lat) .* sin(lon);
-	z = rad .* sin(lat);
 	Uinf = sqrt(sum(S(:,8:10).^2, 2));
 	q0 = S(:,4); q1 = S(:,5); q2 = S(:,6); q3 = S(:,7);
 	ph = atan2(2 * (q0.*q1 + q2.*q3), 1 - 2 * (q1.^2 + q2.^2));

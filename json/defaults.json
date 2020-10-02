@@ -1,12 +1,13 @@
 {
 	"spacecraft": {
-		"type": "capsule",
+		"type": "Capsule",
 		"mass": 5856.9,
 		"length": 3.9116,
 		"nose": 4.6939,
 		"inertia": [8000, 7000, 7000],
 		"database": "apolloKn",
-		"deploy": 7.3e3
+		"deploy": 7.3e3,
+		"damping": -1000
 	},
 	"planet": {
 		"body": "Earth",
@@ -25,7 +26,7 @@
 		"angular": [0, 0, 0]
 	},
 	"integration": {
-		"engine": "",
+		"engine": "XYZ",
 		"maxtime": 2000
 	}
 }

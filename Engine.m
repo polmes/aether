@@ -6,14 +6,19 @@ classdef Engine < handle
 		showwarnings;
 		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'};
 
+		% State scalars
+		rad;
+		lat;
+		lon;
+		alt;
+
 		% State vectors
-		X = zeros(3, 1);
 		Q = zeros(4, 1);
 		U = zeros(3, 1);
 		W = zeros(3, 1);
 	end
 
-	methods % Public
+	methods % (Access = public)
 		% Constructor
 		function self = Engine(varargin)
 			self.options(varargin{:});
@@ -55,7 +60,7 @@ classdef Engine < handle
 				util.exception('Unexpected length of array: %d', numel(S));
 			end
 
-			self.opts.Events = @(t, S) self.events(t, S, sc, pl);
+			self.opts.Events = @(t, S) self.event(sc, pl);
 			[t, S, ~, ~, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
 
 			if ~isempty(ie) && self.showwarnings
@@ -112,68 +117,13 @@ classdef Engine < handle
 		end
 	end
 
-	methods (Access = protected)
+	methods (Abstract, Access = protected)
 		% 6-DOF equations of motion
-		function [dS, dU] = motion(self, t, S, sc, pl)
-			% sc = [Spacecraft]
-			% pl = [Planet]
+		dS = motion(self, t, S, sc, pl);
+	end
 
-			% State variables
-			Ss = num2cell(S);
-			[rad, lat, lon, q0, q1, q2, q3, u, v, w, p, q, r] = Ss{:};
-
-			% Useful state vectors
-			self.X = [rad; lat; lon];
-			self.Q = [q0; q1; q2; q3];
-			self.U = [u; v; w];
-			self.W = [p; q; r];
-
-			% Quaternion Rotation (B -> V)
-			Lq = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
-			      2*(q1*q2+q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q2*q3-q0*q1)     ;
-			      2*(q1*q3-q0*q2)    , 2*(q0*q1+q2*q3)    , q0^2-q1^2-q2^2+q3^2];
-			Lq(abs(Lq) < 1e-12) = 0; % for numerical stability
-			Lbv = Lq;
-			Lvb = Lq.';
-
-			% Position (inertial, inertial axes)
-			Uv = Lbv * self.U;
-			drad = -Uv(3);
-			dlat = Uv(1) / rad;
-			dlon = Uv(2) / (rad * cos(lat));
-
-			% Rotation (body w.r.t. local horizon)
-			Wbv = self.W - Lvb * [dlon * cos(lat); -dlat; -dlon * sin(lat)];
-			pbv = Wbv(1); qbv = Wbv(2); rqv = Wbv(3);
-			Wq = [0  , -pbv, -qbv, -rqv ;
-			      pbv,  0  ,  rqv, -qbv ;
-			      qbv, -rqv,  0  ,  pbv ;
-			      rqv,  qbv, -pbv,   0 ];
-			dQ = 1/2 * Wq * self.Q;
-			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
-
-			% Gravity force (body axes)
-			Fg = Lvb * [0; 0; pl.mu * sc.m / rad^2];
-
-			% Aerodynamic forces (body axes)
-			[Fa, Ma] = self.aerodynamics(t, sc, pl);
-
-			% Velocity (inertial, body axes)
-			F = Fg + Fa;
-			dU = F / sc.m - cross(self.W, self.U);
-			du = dU(1); dv = dU(2); dw = dU(3);
-
-			% Angular velocity (body)
-			M = Ma;
-			dW = sc.I \ (M - cross(self.W, sc.I * self.W));
-			dp = dW(1); dq = dW(2); dr = dW(3);
-
-			dS = [drad; dlat; dlon; dq0; dq1; dq2; dq3; du; dv; dw; dp; dq; dr];
-		end
-
-		% function Fg = gravity(self, ~, sc, pl)
-		% end
-
+	methods (Access = protected)
+		% Basic aerodynamics
 		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
 			% Angle of Attack
 			Uinf = norm(self.U);
@@ -181,14 +131,14 @@ classdef Engine < handle
 			beta = asin(self.U(2) / Uinf);
 
 			% Environment
-			[rho, MFP, a] = pl.atm.trajectory(t, self.X(1) - pl.R, self.X(2), self.X(3));
+			[rho, MFP, a] = pl.atm.trajectory(t, self.alt, self.lat, self.lon);
 			Kn = MFP / sc.L;
 			M = Uinf / a;
 
 			% Aerodynamic coefficients
 			CL = sc.Cx('CL', alpha, M, Kn);
 			CD = sc.Cx('CD', alpha, M, Kn);
-			Cm = sc.Cx('Cm', alpha, M, Kn) + sc.Cx('Cmq', alpha, M, Kn) * self.W(2);
+			Cm = sc.Cx('Cm', alpha, M, Kn) + sc.Cx('Cmq', alpha, M, Kn) * self.W(2) * sc.L / (2 * Uinf);
 
 			% Forces and Moments
 			qS = 1/2 * rho * Uinf^2 * sc.S;
@@ -207,18 +157,21 @@ classdef Engine < handle
 			Ma = [ML; MM; MN];
 		end
 
-		function [val, ter, dir] = events(~, ~, S, sc, pl)
+		% Basic controls (damping)
+		function Mc = controls(self, ~, sc)
+			Mc = sc.damp * self.W;
+		end
+
+		% ODE event function
+		function [val, ter, dir] = event(self, sc, pl)
 			% Can be extended by overriding / concatenating to its results
 			% Note: [DeployAltitude, SkipAtmosphere]
-			rad = S(1);
-			alt = rad - pl.R;
-			Uinf = norm(S(8:10)); % u, v, w
-			Ucir = sqrt(pl.mu / rad);
-			% Uesc = sqrt(2) * Ucir; % sqrt(2 * pl.mu / rad);
-			skip = ~(alt > pl.atm.lim && Uinf > Ucir); % EI + velocity
-			val = [alt - sc.deploy; skip]; % Uinf - Uesc];
-			dir = [-1; -1]; % +1];
-			ter = [true; true]; % true];
+			Umag = norm(self.U);
+			Ucir = sqrt(pl.mu / self.rad);
+			skip = ~(self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
+			val = [self.alt - sc.deploy; skip];
+			dir = [-1; -1];
+			ter = [true; true];
 		end
 	end
 end
