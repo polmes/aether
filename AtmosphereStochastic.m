@@ -6,7 +6,7 @@ classdef AtmosphereStochastic < Factory
 
 	methods
 		function self = AtmosphereStochastic(varargin)
-			self = self@Factory(varargin);
+			self@Factory(varargin);
 		end
 
 		function at = generate(self, obj)

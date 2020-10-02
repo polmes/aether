@@ -6,7 +6,7 @@ classdef SpacecraftFactory < Factory
 
 	methods
 		function self = SpacecraftFactory(varargin)
-			self = self@Factory(varargin);
+			self@Factory(varargin);
 		end
 
 		function sc = generate(self, data)

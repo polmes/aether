@@ -6,7 +6,7 @@ classdef AtmosphereFactory < Factory
 
 	methods
 		function self = AtmosphereFactory(varargin)
-			self = self@Factory(varargin);
+			self@Factory(varargin);
 		end
 
 		function at = generate(self, model, dateandtime)

@@ -1,7 +1,7 @@
 classdef SpacecraftCapsule < Spacecraft
 	methods
 		function self = SpacecraftCapsule(data)
-			self = self@Spacecraft(data);
+			self@Spacecraft(data);
 
 			% In capsules, characteristic length = diameter
 			% and, therefore, the reference area is:

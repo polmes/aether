@@ -7,7 +7,7 @@ classdef EngineFactory < Factory
 
 	methods
 		function self = EngineFactory(varargin)
-			self = self@Factory(varargin);
+			self@Factory(varargin);
 		end
 
 		function sc = generate(self, data)

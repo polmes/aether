@@ -7,7 +7,7 @@ classdef PlanetFactory < Factory
 
 	methods
 		function self = PlanetFactory(varargin)
-			self = self@Factory(varargin);
+			self@Factory(varargin);
 		end
 
 		function pl = generate(self, data, at)
