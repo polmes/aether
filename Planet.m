@@ -33,8 +33,8 @@ classdef Planet < matlab.mixin.Copyable
 	end
 
 	methods (Abstract)
-		[lat, lon, alt] = xyz2lla(self, x, y, z);
-		[x, y, z] = lla2xyz(self, lat, lon, alt);
+		[lat, lon, alt] = xyz2lla(self, x, y, z, t);
+		[x, y, z, Lei] = lla2xyz(self, lat, lon, alt);
 		ran = greatcircle(lat1, lon1, lat2, lon2);
 	end
 end

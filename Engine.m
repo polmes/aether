@@ -90,8 +90,8 @@ classdef Engine < handle
 				Ss = num2cell([S(3:end), def(numel(S(3:end))+1:10)]);
 				[gamma, chi, lat, lon, ph, th, ps, p, q, r] = Ss{:};
 
-				% Full radius
-				[x, y, z] = pl.lla2xyz(lat, lon, alt);
+				% Inertial position and radial distance
+				[x, y, z, Lei] = pl.lla2xyz(lat, lon, alt);
 				rad = norm([x; y; z]);
 
 				% Inertial velocity magnitude defaults to (circular) orbital speed
@@ -106,17 +106,30 @@ classdef Engine < handle
 				v =  Umag * cos(gamma) * sin(chi);
 				w = -Umag * sin(gamma);
 
-				% Euler -> Quaternions
+				% Euler -> Quaternions (body w.r.t. vehicle)
 				Q = [cos(ph/2)*cos(th/2)*cos(ps/2) + sin(ph/2)*sin(th/2)*sin(ps/2) ;
 				     sin(ph/2)*cos(th/2)*cos(ps/2) - cos(ph/2)*sin(th/2)*sin(ps/2) ;
 				     cos(ph/2)*sin(th/2)*cos(ps/2) + sin(ph/2)*cos(th/2)*sin(ps/2) ;
 				     cos(ph/2)*cos(th/2)*sin(ps/2) - sin(ph/2)*sin(th/2)*cos(ps/2)];
 				q0 = Q(1); q1 = Q(2); q2 = Q(3); q3 = Q(4);
 
-				% Velocity components (body frame)
+				% Rotations
 				Lvb = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2+q0*q3)    , 2*(q1*q3-q0*q2)     ;
 				       2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
-				       2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
+					   2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
+				Lev = [          cos(lon),         0,          sin(lon) ;
+				       -sin(lat)*sin(lon),  cos(lat), sin(lat)*cos(lon) ;
+					   -cos(lat)*sin(lon), -sin(lat), cos(lat)*cos(lon)];
+				Lie = Lei.';
+				Lib = Lvb * Lev * Lie;
+
+				% Rotation -> Quaternions (body w.r.t. inertial)
+				q0 = 1/2 * sqrt(trace(Lib) + 1);
+				q1 = (Lib(2,3) - Lib(3,2)) / (4 * q0);
+				q2 = (Lib(3,1) - Lib(1,3)) / (4 * q0);
+				q3 = (Lib(1,2) - Lib(2,1)) / (4 * q0);
+
+				% Velocity components (body frame)
 				U = Lvb * [u; v; w];
 				u = U(1); v = U(2); w = U(3);
 
@@ -145,7 +158,7 @@ classdef Engine < handle
 
 			% Additional state scalars
 			self.rad = norm(X);
-			[self.lat, self.lon, self.alt] = pl.xyz2lla(x, y, z);
+			[self.lat, self.lon, self.alt] = pl.xyz2lla(x, y, z, t);
 
 			% Quaternion Rotation (B -> I)
 			Lq = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;

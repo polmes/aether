@@ -1,7 +1,7 @@
 function post(t, S, sc, pl)
 	% Variables
 	x = S(:,1); y = S(:,2); z = S(:,3);
-	[lat, lon, alt] = pl.xyz2lla(x, y, z);
+	[lat, lon, alt] = pl.xyz2lla(x, y, z, t);
 	ran = pl.greatcircle(lat(1), lon(1), lat, lon);
 	Umag = sqrt(sum(S(:,8:10).^2, 2));
 	q0 = S(:,4); q1 = S(:,5); q2 = S(:,6); q3 = S(:,7);

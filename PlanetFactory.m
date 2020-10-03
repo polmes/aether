@@ -1,6 +1,6 @@
 classdef PlanetFactory < Factory
 	properties (Constant, Access = protected)
-		defaults = {'Spherical', @PlanetSpherical};
+		defaults = {'Spherical', @PlanetSpherical, 'Rotating', @PlanetRotating};
 		exception = 'Unkown planetary model provided';
 		datadir = 'constants/';
 	end
@@ -10,7 +10,7 @@ classdef PlanetFactory < Factory
 			self@Factory(varargin);
 		end
 
-		function pl = generate(self, data, at)
+		function pl = generate(self, data, at, dateandtime)
 			%   data    :=  'planet' structure from case *.json
 			%   at      :=  Atmosphere object from FactoryAtmosphere
 
@@ -24,6 +24,7 @@ classdef PlanetFactory < Factory
 				try
 					argdata.R = data.body.radius;
 					argdata.M = data.body.mass;
+					argdata.T = data.body.period;
 				catch
 					util.exception('Custom planetary body is missing some properties');
 				end
@@ -34,11 +35,13 @@ classdef PlanetFactory < Factory
 					body = known.table(upper(data.body),:);
 					argdata.R = body.radius;
 					argdata.M = body.mass;
+					argdata.T = body.period;
 				catch
 					util.exception('Unknown planetary body with name: %s', data.body);
 				end
 			end
 			argdata.atm = at;
+			argdata.datetime = datetime(dateandtime, 'InputFormat', 'yyyy/MM/dd HH:mm:ss');
 
 			% Generate Planet (note: first argument defines class)
 			pl = self.constructor(data.type, argdata);

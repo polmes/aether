@@ -27,7 +27,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 
 	% Pre (assumes XYZ engine)
 	x = S(:,1); y = S(:,2); z = S(:,3);
-	[lat, lon, alt] = pl.xyz2lla(x, y, z);
+	[lat, lon, alt] = pl.xyz2lla(x, y, z, t);
 	Umag = sqrt(sum(S(:,8:10).^2, 2));
 	rho = pl.atm.trajectory(t, alt, lat, lon);
 

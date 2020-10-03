@@ -70,7 +70,7 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 
 	% Generate Planet object
 	pf = PlanetFactory;
-	pl = pf.generate(data.planet, at);
+	pl = pf.generate(data.planet, at, data.initial.datetime);
 
 	% Generate array of initial conditions
 	% Note: data will *always* have the following fields
