@@ -161,19 +161,14 @@ classdef Engine < handle
 			[self.lat, self.lon, self.alt] = pl.xyz2lla(x, y, z, t);
 
 			% Quaternion Normalization
-			PRA = acos(self.Q(1));
-			PRV = self.Q(2:4) / sin(PRA);
-			self.Q(2:4) = 1/norm(PRV) * PRV * sin(PRA);
 			self.Q = 1/norm(self.Q) * self.Q;
 			q0 = self.Q(1); q1 = self.Q(2); q2 = self.Q(3); q3 = self.Q(4);
 
 			% Quaternion Rotation (B -> I)
-			Lq = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
-			      2*(q1*q2+q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q2*q3-q0*q1)     ;
-			      2*(q1*q3-q0*q2)    , 2*(q0*q1+q2*q3)    , q0^2-q1^2-q2^2+q3^2];
-			% Lq(abs(Lq) < 1e-12) = 0; % for numerical stability
-			Lbi = Lq;
-			Lib = Lq.';
+			Lbi = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
+			       2*(q1*q2+q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q2*q3-q0*q1)     ;
+			       2*(q1*q3-q0*q2)    , 2*(q0*q1+q2*q3)    , q0^2-q1^2-q2^2+q3^2];
+			Lib = Lbi.';
 
 			% Position (inertial, inertial axes)
 			dX = Lbi * self.U;

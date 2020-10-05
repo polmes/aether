@@ -26,7 +26,7 @@ classdef EngineAero < Engine
 			% Call superclass method
 			[dS, dU] = motion@Engine(self, t, S, sc, pl);
 
-			% Keep track of dAoA
+			% Keep track of angle of attack rate
 			Uinf = norm(self.U);
 			self.dAoA = (self.U(1) * dot(self.U, dU) - dU(1) * Uinf^2) / (Uinf^2 * sqrt(sum(self.U(2:3).^2)));
 
@@ -39,29 +39,11 @@ classdef EngineAero < Engine
 		end
 
 		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
-			% % (Total) Angle of Attack
-			% Uinf = norm(self.U);self
-			% % AoA = acos(self.U(1) / Uinf);
-			% alpha = atan2(self.U(3), self.U(1));
-			% beta = asin(self.U(2) / Uinf);
-
-			% % Total Angle of Attack
-			% % Uinf = norm(self.U);
-			% AoA = acos(self.U(1) / Uinf);
-			% clockAoA = atan2(self.U(2), self.U(3));
-
 			% Nominal frame of reference
-			% Qn = [self.Q(1); self.Q(2) - self.q1n; 0; 0];
-			% Qn = 1/norm(Qn) * Qn;
-			% q0 = Qn(1); q1 = Qn(2); q2 = Qn(3); q3 = Qn(4);
-			% Lnb = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2+q0*q3)    , 2*(q1*q3-q0*q2)     ;
-			%        2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
-			%        2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
 			Lbn = [1,                0,               0 ;
 			       0,  cos(self.delta), sin(self.delta) ;
 			       0, -sin(self.delta), cos(self.delta)];
 			Lnb = Lbn.';
-			% Lbn = Lnb.';
 			U = Lbn * self.U;
 			Uinf = norm(U);
 
