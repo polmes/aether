@@ -26,8 +26,11 @@ classdef Factory < handle
 				dict = self.dictionary;
 				constructor = dict(key);
 				obj = constructor(varargin{:});
-			catch
-				util.exception(self.exception);
+			catch ME
+				if strcmp(ME.identifier, 'MATLAB:Containers:Map:NoKey')
+					util.exception(self.exception);
+				end
+				rethrow(ME);
 			end
 		end
 
