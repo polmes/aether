@@ -5,7 +5,7 @@ function CxMC(casefile, analysisfile)
 	if nargin < 1
 		casefile = '';
 	end
-	[sc, pl, S0, T, engine, opts] = util.pre(casefile, analysisfile);
+	[sc, pl, engine, S0, T, opts] = util.pre(casefile, analysisfile);
 
 	% Analysis variables
 	stdv = opts.std;

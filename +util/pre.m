@@ -1,4 +1,4 @@
-function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
+function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
 	% util.pre(casefile, analysisfile)
 	% Preprocesses input file and generates AETHER objects
 	%
@@ -72,6 +72,10 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	pf = PlanetFactory;
 	pl = pf.generate(data.planet, at, data.initial.datetime);
 
+	% Generate Engine object
+	ef = EngineFactory;
+	en = ef.generate(data.integration);
+
 	% Generate array of initial conditions
 	% Note: data will *always* have the following fields
 	IC = data.initial;
@@ -82,14 +86,12 @@ function [sc, pl, S0, T, en, opts] = pre(casefile, analysisfile)
 	lat = deg2rad(IC.latitude);
 	lon = deg2rad(IC.longitude);
 	att = num2cell(deg2rad(IC.attitude));
+	delta0 = deg2rad(IC.bank);
 	[ph, th, ps] = att{:};
 	ang = num2cell(IC.angular);
 	[p, q, r] = ang{:};
-	S0 = [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r];
-
-	% Generate Engine object
-	ef = EngineFactory;
-	en = ef.generate(data.integration);
+	S0 = [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r, delta0];
+	S0 = S0(1:en.NS-1);
 
 	% Max integration time
 	T = data.integration.maxtime;

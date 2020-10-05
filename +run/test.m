@@ -1,6 +1,6 @@
 function test(varargin)
 	% Pre
-	[sc, pl, S0, T, engine] = util.pre(varargin{:});
+	[sc, pl, engine, S0, T] = util.pre(varargin{:});
 
 	% Solver setup
 	engine.options('RelTol', 1e-3, 'AbsTol', 1e-5);
