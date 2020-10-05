@@ -8,6 +8,7 @@ classdef Spacecraft < handle
 		db; % struct with aerodynamic coefficients f(alpha, M, Kn)
 		deploy; % altitude at which to deploy drogue/parachutes [m]
 		damp; % damping coefficient to represent control RCS thrusters
+		CG; % nominal center of gravity location (in negative nominal body axes) [m]
 	end
 
 	properties (Constant, Access = protected)
@@ -24,6 +25,7 @@ classdef Spacecraft < handle
 				self.R = data.nose;
 				self.deploy = data.deploy;
 				self.damp = data.damping;
+				self.CG = data.cg;
 
 				% Inertia can be either diagonal or full tensor
 				I = data.inertia;

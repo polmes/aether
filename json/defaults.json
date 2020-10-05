@@ -7,7 +7,8 @@
 		"inertia": [8000, 7000, 7000],
 		"database": "apolloKn",
 		"deploy": 7.3e3,
-		"damping": -1000
+		"damping": -1000,
+		"cg": [1.1455, 0, 0.1600]
 	},
 	"planet": {
 		"body": "Earth",
@@ -23,7 +24,8 @@
 		"flightpath": -7.01,
 		"heading": 0,
 		"attitude": [0, 0, 0],
-		"angular": [0, 0, 0]
+		"angular": [0, 0, 0],
+		"bank": 0
 	},
 	"integration": {
 		"engine": "",

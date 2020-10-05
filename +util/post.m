@@ -14,7 +14,7 @@ function post(t, S, sc, pl)
 	M = Umag ./ a;
 	CL = sc.Cx('CL', alpha, M, Kn);
 	CD = sc.Cx('CD', alpha, M, Kn);
-	Cm = sc.Cx('Cm', alpha, M, Kn);
+	% Cm = sc.Cx('Cm', alpha, M, Kn);
 
 	% X-Y-Z
 	figure;
@@ -101,12 +101,12 @@ function post(t, S, sc, pl)
 	hold('on');
 	plot(t, CL);
 	plot(t, CD);
-	plot(t, Cm);
+	% plot(t, Cm);
 	grid('on');
 	xlim([0 inf]);
 	xlabel('Time [s]');
 	ylabel('Coefficient');
-	legend('$C_L$', '$C_D$', '$C_m$');
+	legend('$C_L$', '$C_D$'); % , '$C_m$');
 
 	% Set options
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
