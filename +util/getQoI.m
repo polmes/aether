@@ -27,7 +27,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 
 	% Pre (assumes XYZ engine)
 	x = S(:,1); y = S(:,2); z = S(:,3);
-	[lat, lon, alt] = pl.xyz2lla(x, y, z, t);
+	[lat, lon, alt, rad] = pl.xyz2lla(x, y, z, t);
 	Umag = sqrt(sum(S(:,8:10).^2, 2));
 	rho = pl.atm.trajectory(t, alt, lat, lon);
 
@@ -38,7 +38,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	dur = t(end);
 
 	% Range
-	ran = pl.greatcircle(lat(1), lon(1), lat(end), lon(end));
+	ran = pl.greatcircle(rad(1), lat(1), lon(1), rad(end), lat(end), lon(end));
 
 	% Final velocity
 	Uend = Umag(end);

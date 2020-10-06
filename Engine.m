@@ -157,8 +157,7 @@ classdef Engine < handle
 			self.W = [p; q; r];
 
 			% Additional state scalars
-			self.rad = norm(X);
-			[self.lat, self.lon, self.alt] = pl.xyz2lla(x, y, z, t);
+			[self.lat, self.lon, self.alt, self.rad] = pl.xyz2lla(x, y, z, t);
 
 			% Quaternion Normalization
 			self.Q = 1/norm(self.Q) * self.Q;
@@ -183,7 +182,7 @@ classdef Engine < handle
 			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
 
 			% Gravity force (body axes)
-			g = pl.gravity(self.rad, self.lat, self.lon);
+			g = pl.gravity(self.rad, self.lat, self.lon, self.alt);
 			Fg = Lib * (-sc.m * g) * (X / self.rad);
 
 			% Aerodynamic forces (body axes)

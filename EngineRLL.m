@@ -95,7 +95,7 @@ classdef EngineRLL < Engine
 			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
 
 			% Gravity force (body axes)
-			g = pl.gravity(self.rad, self.lat, self.lon);
+			g = pl.gravity(self.rad, self.lat, self.lon, self.alt);
 			Fg = Lvb * [0; 0; sc.m * g];
 
 			% Aerodynamic forces (body axes)
