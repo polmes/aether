@@ -13,9 +13,9 @@ classdef PlanetWGS < PlanetRotating
 			self.ellipsoid = wgs84Ellipsoid;
 		end
 
-		function [lat, lon, alt, rad] = xyz2lla(self, x, y, z, t)
+		function [lat, lon, alt, rad, Lie] = xyz2lla(self, x, y, z, t)
 			% ECI -> ECEF
-			[xe, ye, ze] = self.xyz2ecef(x, y, z, t);
+			[xe, ye, ze, Lie] = self.xyz2ecef(x, y, z, t);
 			rad = sqrt(sum([xe, ye, ze].^2, 2));
 
 			% ECEF -> LLA

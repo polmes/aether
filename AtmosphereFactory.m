@@ -1,6 +1,6 @@
 classdef AtmosphereFactory < Factory
 	properties (Constant, Access = protected)
-		defaults = {'GRAM', @nasa.AtmosphereGRAM, 'FastGRAM', @nasa.AtmosphereFastGRAM, 'MSIS', @AtmosphereMSIS, 'COESA', @AtmosphereCOESA, 'Std76', @AtmosphereStd76};
+		defaults = {'GRAM', @nasa.AtmosphereGRAM, 'FastGRAM', @nasa.AtmosphereFastGRAM, 'MSIS', @AtmosphereMSIS, 'COESA', @AtmosphereCOESA, 'Std76', @AtmosphereStd76, 'Wind', @nasa.AtmosphereWindGRAM, 'WindGRAM', @nasa.AtmosphereWindGRAM};
 		exception = 'Unkown atmosphere model provided';
 	end
 

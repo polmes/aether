@@ -13,10 +13,13 @@ classdef Atmosphere < handle
 
 		% Avogadro's Number
 		NA = 6.02214076e23; % [particles/mol]
+
+		% Default wind velocity
+		W = zeros(3, 1);
 	end
 
 	methods (Abstract)
 		% Standard method to get atmospheric properties during trajectory propgation
-		[rho, MFP, a] = trajectory(self, t, alt, lat, lon)
+		[rho, MFP, a, W] = trajectory(self, t, alt, lat, lon);
 	end
 end

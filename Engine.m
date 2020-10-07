@@ -13,9 +13,11 @@ classdef Engine < handle
 		alt;
 
 		% State vectors
-		Q = zeros(4, 1);
 		U = zeros(3, 1);
 		W = zeros(3, 1);
+
+		% Rotation matrix
+		Lvb = zeros(3);
 	end
 
 	methods % (Access = public)
@@ -107,18 +109,18 @@ classdef Engine < handle
 
 			% Euler -> Quaternions (body w.r.t. vehicle)
 			Q = [cos(ph/2)*cos(th/2)*cos(ps/2) + sin(ph/2)*sin(th/2)*sin(ps/2) ;
-					sin(ph/2)*cos(th/2)*cos(ps/2) - cos(ph/2)*sin(th/2)*sin(ps/2) ;
-					cos(ph/2)*sin(th/2)*cos(ps/2) + sin(ph/2)*cos(th/2)*sin(ps/2) ;
-					cos(ph/2)*cos(th/2)*sin(ps/2) - sin(ph/2)*sin(th/2)*cos(ps/2)];
+			     sin(ph/2)*cos(th/2)*cos(ps/2) - cos(ph/2)*sin(th/2)*sin(ps/2) ;
+			     cos(ph/2)*sin(th/2)*cos(ps/2) + sin(ph/2)*cos(th/2)*sin(ps/2) ;
+			     cos(ph/2)*cos(th/2)*sin(ps/2) - sin(ph/2)*sin(th/2)*cos(ps/2)];
 			q0 = Q(1); q1 = Q(2); q2 = Q(3); q3 = Q(4);
 
 			% Rotations
 			Lvb = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2+q0*q3)    , 2*(q1*q3-q0*q2)     ;
-					2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
-					2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
-			Lev = [          cos(lon),         0,          sin(lon) ;
-					-sin(lat)*sin(lon),  cos(lat), sin(lat)*cos(lon) ;
-					-cos(lat)*sin(lon), -sin(lat), cos(lat)*cos(lon)];
+			       2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
+			       2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
+			Lev = [          cos(lon),        0,           sin(lon) ;
+			        sin(lat)*sin(lon), cos(lat), -sin(lat)*cos(lon) ;
+			       -cos(lat)*sin(lon), sin(lat),  cos(lat)*cos(lon)];
 			Lie = Lei.';
 			Lib = Lvb * Lev * Lie;
 
@@ -151,17 +153,16 @@ classdef Engine < handle
 			[x, y, z, q0, q1, q2, q3, u, v, w, p, q, r] = Ss{:};
 
 			% Useful state vectors
-			X = [x; y; z];
-			self.Q = [q0; q1; q2; q3];
+			Q = [q0; q1; q2; q3];
 			self.U = [u; v; w];
 			self.W = [p; q; r];
 
 			% Additional state scalars
-			[self.lat, self.lon, self.alt, self.rad] = pl.xyz2lla(x, y, z, t);
+			[self.lat, self.lon, self.alt, self.rad, Lie] = pl.xyz2lla(x, y, z, t);
 
 			% Quaternion Normalization
-			self.Q = 1/norm(self.Q) * self.Q;
-			q0 = self.Q(1); q1 = self.Q(2); q2 = self.Q(3); q3 = self.Q(4);
+			Q = 1/norm(Q) * Q;
+			q0 = Q(1); q1 = Q(2); q2 = Q(3); q3 = Q(4);
 
 			% Quaternion Rotation (B -> I)
 			Lbi = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
@@ -178,12 +179,19 @@ classdef Engine < handle
 			      p,  0,  r, -q ;
 			      q, -r,  0,  p ;
 			      r,  q, -p,  0];
-			dQ = 1/2 * Wq * self.Q;
+			dQ = 1/2 * Wq * Q;
 			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
+
+			% Keep track of body rotation w.r.t. vehicle frame
+			Lve = [cos(self.lon),  sin(self.lat)*sin(self.lon), -cos(self.lat)*sin(self.lon) ;
+			                   0,                cos(self.lat),                sin(self.lat) ;
+			       sin(self.lon), -sin(self.lat)*cos(self.lon),  cos(self.lat)*cos(self.lon)];
+			self.Lvb = Lib * Lie.' * Lve;
+			self.Lvb(abs(self.Lvb) < 1e-12) = 0; % for numerical stability
 
 			% Gravity force (body axes)
 			g = pl.gravity(self.rad, self.lat, self.lon, self.alt);
-			Fg = Lib * (-sc.m * g) * (X / self.rad);
+			Fg = self.Lvb * [0; 0; sc.m * g];
 
 			% Aerodynamic forces (body axes)
 			[Fa, Ma] = self.aerodynamics(t, sc, pl);
@@ -240,7 +248,7 @@ classdef Engine < handle
 
 		% Basic controls (damping)
 		function Mc = controls(self, ~, sc)
-			Mc = sc.damp * self.W;
+			Mc = -sc.damp * self.W;
 		end
 
 		% ODE event function

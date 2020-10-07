@@ -29,8 +29,9 @@ classdef Planet < matlab.mixin.Copyable
 	end
 
 	methods (Abstract)
-		[lat, lon, alt, rad] = xyz2lla(self, x, y, z, t);
+		[lat, lon, alt, rad, Lie] = xyz2lla(self, x, y, z, t);
 		[x, y, z, Lei] = lla2xyz(self, lat, lon, alt);
 		g = gravity(self, rad, lat, lon, alt);
+		vel = atmspeed(self, rad, lat);
 	end
 end

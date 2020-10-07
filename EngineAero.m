@@ -1,10 +1,12 @@
 classdef EngineAero < Engine
 	properties (Access = protected)
-		% New property
+		% New state scalars
 		dAoA = 0;
-
-		% New state scalar
 		delta = 0;
+
+
+		% New state vector
+		Urel = zeros(3, 1);
 	end
 
 	methods (Static)
@@ -27,8 +29,8 @@ classdef EngineAero < Engine
 			[dS, dU] = motion@Engine(self, t, S, sc, pl);
 
 			% Keep track of angle of attack rate
-			Uinf = norm(self.U);
-			self.dAoA = (self.U(1) * dot(self.U, dU) - dU(1) * Uinf^2) / (Uinf^2 * sqrt(sum(self.U(2:3).^2)));
+			Uinf = norm(self.Urel);
+			self.dAoA = (self.Urel(1) * dot(self.Urel, dU) - dU(1) * Uinf^2) / (Uinf^2 * sqrt(sum(self.Urel(2:3).^2)));
 
 			% Keep track of bank angle offset
 			self.delta = S(14);
@@ -39,13 +41,18 @@ classdef EngineAero < Engine
 		end
 
 		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
+			% Environment + Relative Velocity
+			[rho, MFP, a, W] = pl.atm.trajectory(t, self.alt, self.lat, self.lon);
+			self.Urel = self.U - self.Lvb * ([pl.atmspeed(self.rad, self.lat); 0; 0] + W);
+			Uinf = norm(self.Urel);
+			qS = 1/2 * rho * Uinf^2 * sc.S; % dynamic pressure * reference area
+
 			% Nominal frame of reference
 			Lbn = [1,                0,               0 ;
 			       0,  cos(self.delta), sin(self.delta) ;
 			       0, -sin(self.delta), cos(self.delta)];
 			Lnb = Lbn.';
-			U = Lbn * self.U;
-			Uinf = norm(U);
+			U = Lbn * self.Urel;
 
 			% (Total) Angle of Attack
 			Uyz = U(3) * sqrt((U(2) / U(3))^2 + 1);
@@ -59,11 +66,9 @@ classdef EngineAero < Engine
 			       sin(alpha)*cos(beta), -sin(alpha)*sin(beta),  cos(alpha)];
 			Lnw = Lwn.';
 
-			% Environment
-			[rho, MFP, a] = pl.atm.trajectory(t, self.alt, self.lat, self.lon);
+			% Dimensionless numbers
 			Kn = MFP / sc.L;
 			M = Uinf / a;
-			qS = 1/2 * rho * Uinf^2 * sc.S; % dynamic pressure * reference area
 
 			% Aerodynamic force coefficients
 			CL = sc.Cx('CL', AoA, M, Kn);

@@ -74,10 +74,11 @@ classdef AtmosphereStd76 < Atmosphere
 			lambda = interp1(self.data(:, 1), self.data(:, 5) / 1e3, h, self.interpol);
 		end
 
-		function [rho, MFP, a] = trajectory(self, ~, alt, ~, ~)
+		function [rho, MFP, a, W] = trajectory(self, ~, alt, ~, ~)
 			[rho, ~, T] = self.model(alt);
 			[Mw, MFP] = self.fluid(alt);
 			a = sqrt(self.gamma .* Ru ./ Mw .* T);
+			W = self.W;
 		end
 	end
 end

@@ -9,20 +9,20 @@ classdef PlanetSphericalRotating < PlanetSpherical & PlanetRotating
 			self@PlanetRotating(data);
 		end
 
-		function [lat, lon, alt, rad] = xyz2lla(self, x, y, z, t)
+		function [lat, lon, alt, rad, Lie] = xyz2lla(self, x, y, z, t)
 			% ECI -> ECEF
-			[xe, ye, ze] = self.xyz2ecef(x, y, z, t);
+			[xe, ye, ze, Lie] = self.xyz2ecef(x, y, z, t);
 
 			% ECEF -> LLA
 			[lat, lon, alt, rad] = xyz2lla@PlanetSpherical(self, xe, ye, ze, t);
 		end
 
-		function [lat, lon, alt, rad] = X2lla(self, X, t)
+		function [lat, lon, alt] = X2lla(self, X, t)
 			% ECI -> ECEF
 			Xe = self.X2ecef(X, t);
 
 			% ECEF -> LLA
-			[lat, lon, alt, rad] = X2lla@PlanetSpherical(self, Xe, t);
+			[lat, lon, alt] = X2lla@PlanetSpherical(self, Xe, t);
 		end
 
 		function [x, y, z, Lei] = lla2xyz(self, lat, lon, alt)

@@ -46,11 +46,13 @@ classdef AtmosphereCOESA < Atmosphere
 			[T, ~, P, rho] = atmoscoesa(h, self.action);
 		end
 
-		function [rho, MFP, a] = trajectory(self, ~, alt, ~, ~)
+		function [rho, MFP, a, W] = trajectory(self, ~, alt, ~, ~)
 			[~, a, ~, rho] = atmoscoesa(alt, self.action);
 
 			h = alt / 1e3; % [m] -> [km] for interpolation
 			MFP = interp1(self.data(:,1), self.data(:,2), h, self.interpol);
+
+			W = self.W;
 		end
 	end
 end

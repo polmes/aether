@@ -33,7 +33,7 @@ classdef AtmosphereMSIS < Atmosphere
 			P = rho .* self.Ru ./ Mw .* T;
 		end
 
-		function [rho, MFP, a] = trajectory(self, t, alt, lat, lon)
+		function [rho, MFP, a, W] = trajectory(self, t, alt, lat, lon)
 			dateandtime = self.dt + seconds(t);
 			[rho, P, T, Mw] = self.model(alt, lat, lon, dateandtime);
 
@@ -44,6 +44,9 @@ classdef AtmosphereMSIS < Atmosphere
 
 			% Speed of Sound
 			a = sqrt(self.gamma * self.Ru ./ Mw .* T);
+
+			% Winds
+			W = self.W;
 		end
 	end
 end

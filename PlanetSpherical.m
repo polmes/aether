@@ -19,18 +19,19 @@ classdef PlanetSpherical < Planet
 			self.ellipsoid.Radius = self.R;
 		end
 
-		% ECEF -> LLA
-		function [lat, lon, alt, rad] = xyz2lla(self, x, y, z, ~)
+		% ECEF -> LLA (vectorized)
+		function [lat, lon, alt, rad, Lie] = xyz2lla(self, x, y, z, ~)
 			rad = sqrt(sum([x, y, z].^2, 2));
-			lat = asin(y ./ rad);
+			lat = asin(-y ./ rad);
 			lon = asin(x ./ (rad .* cos(lat)));
 			alt = rad - self.R;
+			Lie = eye(3);
 		end
 
 		% ECEF -> LLA
-		function [lat, lon, alt, rad] = X2lla(self, X, ~)
+		function [lat, lon, alt] = X2lla(self, X, ~)
 			rad = norm(X);
-			lat = asin(X(2) ./ rad);
+			lat = asin(-X(2) ./ rad);
 			lon = asin(X(1) ./ (rad .* cos(lat)));
 			alt = rad - self.R;
 		end
@@ -47,6 +48,11 @@ classdef PlanetSpherical < Planet
 		% Standard Newtonian Gravity
 		function g = gravity(self, rad, ~, ~, ~)
 			g = self.mu ./ rad.^2;
+		end
+
+		% Fixed atmosphere in this case
+		function vel = atmspeed(~, ~, ~)
+			vel = 0;
 		end
 	end
 end
