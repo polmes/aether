@@ -197,7 +197,7 @@ classdef Engine < handle
 			[Fa, Ma] = self.aerodynamics(t, sc, pl);
 
 			% Control moments (body axes)
-			Mc = self.controls(t, sc);
+			Mc = self.controls(Ma, sc);
 
 			% Velocity (inertial, body axes)
 			F = Fg + Fa;
@@ -246,9 +246,16 @@ classdef Engine < handle
 			Ma = [ML; MM; MN];
 		end
 
-		% Basic controls (damping)
-		function Mc = controls(self, ~, sc)
-			Mc = -sc.damp * self.W;
+		% Basic controls
+		% - Rate damping (W -> 0)
+		% - Cancel non-pitching external moments
+		function Mc = controls(self, Ma, sc)
+			% Lyapunov (nonlinear) control law
+			% Note: sc.damp is the proportional constant
+			%       - If 1 value, same for all components
+			%       - If 3 values, different for each axis
+			Mext = [Ma(1); 0; Ma(3)];
+			Mc = -diag(sc.damp) * self.W - Mext;
 		end
 
 		% ODE event function
