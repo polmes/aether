@@ -12,6 +12,7 @@ function test(varargin)
 
 	% Post
 	util.post(t, S, sc, pl);
+	util.flight3D(t, S, pl);
 
 	% Send variables to 'base' workspace for debugging
 	vars = who;

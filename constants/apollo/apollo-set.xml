@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PropertyList>
+
+	<sim>
+		<description>Apollo Command Module</description>
+
+		<flight-model>network</flight-model>
+
+		<model>
+			<path>Models/apollo.xml</path>
+		</model>
+
+	</sim>
+
+</PropertyList>
