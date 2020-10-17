@@ -61,7 +61,7 @@ classdef PlanetRotating < Planet
 	methods (Sealed)
 		% Atmosphere rotates with the planet
 		function vel = atmspeed(self, rad, lat)
-			vel = self.W * rad * cos(lat);
+			vel = self.W * rad .* cos(lat);
 		end
 	end
 end

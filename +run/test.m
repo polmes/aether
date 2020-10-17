@@ -11,8 +11,8 @@ function test(varargin)
 	toc;
 
 	% Post
-	util.post(t, S, sc, pl);
-	util.flight3D(t, S, pl);
+	[lat, lon, alt, ph, th, ps] = util.post(t, S, sc, pl);
+	util.flight3D(t, lat, lon, alt, ph, th, ps);
 
 	% Send variables to 'base' workspace for debugging
 	vars = who;
