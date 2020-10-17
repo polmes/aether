@@ -3,7 +3,8 @@ classdef EngineAero < Engine
 		% New state scalars
 		dAoA = 0;
 		delta = 0;
-
+		alpha = 0;
+		beta = 0;
 
 		% New state vector
 		Urel = zeros(3, 1);
@@ -48,7 +49,7 @@ classdef EngineAero < Engine
 			qS = 1/2 * rho * Uinf^2 * sc.S; % dynamic pressure * reference area
 
 			% Nominal frame of reference
-			Lbn = [1,                0,               0 ;
+			Lbn = [1,  0              , 0               ;
 			       0,  cos(self.delta), sin(self.delta) ;
 			       0, -sin(self.delta), cos(self.delta)];
 			Lnb = Lbn.';
@@ -57,13 +58,13 @@ classdef EngineAero < Engine
 			% (Total) Angle of Attack
 			Uyz = U(3) * sqrt((U(2) / U(3))^2 + 1);
 			AoA = atan2(Uyz, U(1));
-			alpha = atan2(U(3), U(1));
-			beta = asin(U(2) / Uinf);
+			self.alpha = atan2(U(3), U(1));
+			self.beta = asin(U(2) / Uinf);
 
 			% Wind Axes Rotation
-			Lwn = [cos(alpha)*cos(beta), -cos(alpha)*sin(beta), -sin(alpha) ;
-			       sin(beta)           ,  cos(beta)           ,  0          ;
-			       sin(alpha)*cos(beta), -sin(alpha)*sin(beta),  cos(alpha)];
+			Lwn = [cos(self.alpha)*cos(self.beta), -cos(self.alpha)*sin(self.beta), -sin(self.alpha) ;
+			       sin(self.beta)                ,  cos(self.beta)                ,  0               ;
+			       sin(self.alpha)*cos(self.beta), -sin(self.alpha)*sin(self.beta),  cos(self.alpha)];
 			Lnw = Lwn.';
 
 			% Dimensionless numbers

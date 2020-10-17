@@ -7,8 +7,12 @@ classdef Spacecraft < handle
 		I; % inertia matrix [kg.m^2]
 		db; % struct with aerodynamic coefficients f(alpha, M, Kn)
 		deploy; % altitude at which to deploy drogue/parachutes [m]
-		damp; % damping coefficient to represent control RCS thrusters
 		CG; % nominal center of gravity location (in negative nominal body axes) [m]
+		damp; % damping coefficient/s to represent control RCS thrusters [1x1 or 3x1]
+		hold; % attitude hold coefficient/s [1x1 or 3x1]
+		tref; % array of times in which to perform bank angle rotation [s]
+		W; % angular velocity for bank angle rotations [rad/s]
+		maxMc; % maximum torque achievable by the RCS (control system) [N.m]
 	end
 
 	properties (Constant, Access = protected)
@@ -24,7 +28,6 @@ classdef Spacecraft < handle
 				self.L = data.length;
 				self.R = data.nose;
 				self.deploy = data.deploy;
-				self.damp = data.damping;
 				self.CG = data.cg;
 
 				% Inertia can be either diagonal or full tensor
@@ -42,6 +45,12 @@ classdef Spacecraft < handle
 					util.exception('Unexpected length of inertia vector');
 				end
 
+				% Controls
+				self.damp = data.damping;
+				self.hold = data.holding;
+				self.tref = [data.times; NaN]; % append NaN to increase array length
+				self.W = deg2rad(data.banking); % [deg/s] -> [rad/s]
+				self.maxMc = data.maxRCS;
 
 				% Store database as struct
 				self.db = util.open(data.database, 'DataDir', self.datadir);

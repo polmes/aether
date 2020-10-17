@@ -7,8 +7,12 @@
 		"inertia": [8000, 7000, 7000],
 		"database": "apolloKn",
 		"deploy": 7.3e3,
+		"cg": [1.1455, 0, 0.1600],
 		"damping": 1000,
-		"cg": [1.1455, 0, 0.1600]
+		"holding": 1000,
+		"banking": 10,
+		"times": [30, 60],
+		"maxRCS": [1.7e3, 1.7e3, 1.7e3]
 	},
 	"planet": {
 		"body": "Earth",

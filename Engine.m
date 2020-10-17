@@ -15,6 +15,7 @@ classdef Engine < handle
 		% State vectors
 		U = zeros(3, 1);
 		W = zeros(3, 1);
+		Q = zeros(4, 1);
 
 		% Rotation matrix
 		Lvb = zeros(3);
@@ -62,11 +63,11 @@ classdef Engine < handle
 				util.exception('Unexpected length of initial conditions array: %d', numel(S));
 			end
 
-			self.opts.Events = @(t, S) self.event(sc, pl);
+			self.opts.Events = @(t, S) self.event(t, sc, pl);
 			[t, S, ~, ~, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
 
 			if ~isempty(ie) && self.showwarnings
-				warning(self.eventmssgs{ie});
+				warning(self.eventmssgs{ie(end)});
 			end
 		end
 	end
@@ -118,7 +119,7 @@ classdef Engine < handle
 			Lvb = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2+q0*q3)    , 2*(q1*q3-q0*q2)     ;
 			       2*(q1*q2-q0*q3)    , q0^2-q1^2+q2^2-q3^2, 2*(q0*q1+q2*q3)     ;
 			       2*(q0*q2+q1*q3)    , 2*(q2*q3-q0*q1)    , q0^2-q1^2-q2^2+q3^2];
-			Lev = [          cos(lon),        0,           sin(lon) ;
+			Lev = [ cos(lon)         , 0       ,  sin(lon)          ;
 			        sin(lat)*sin(lon), cos(lat), -sin(lat)*cos(lon) ;
 			       -cos(lat)*sin(lon), sin(lat),  cos(lat)*cos(lon)];
 			Lie = Lei.';
@@ -153,7 +154,7 @@ classdef Engine < handle
 			[x, y, z, q0, q1, q2, q3, u, v, w, p, q, r] = Ss{:};
 
 			% Useful state vectors
-			Q = [q0; q1; q2; q3];
+			self.Q = [q0; q1; q2; q3];
 			self.U = [u; v; w];
 			self.W = [p; q; r];
 
@@ -161,8 +162,8 @@ classdef Engine < handle
 			[self.lat, self.lon, self.alt, self.rad, Lie] = pl.xyz2lla(x, y, z, t);
 
 			% Quaternion Normalization
-			Q = 1/norm(Q) * Q;
-			q0 = Q(1); q1 = Q(2); q2 = Q(3); q3 = Q(4);
+			self.Q = 1/norm(self.Q) * self.Q;
+			q0 = self.Q(1); q1 = self.Q(2); q2 = self.Q(3); q3 = self.Q(4);
 
 			% Quaternion Rotation (B -> I)
 			Lbi = [q0^2+q1^2-q2^2-q3^2, 2*(q1*q2-q0*q3)    , 2*(q0*q2+q1*q3)     ;
@@ -179,7 +180,7 @@ classdef Engine < handle
 			      p,  0,  r, -q ;
 			      q, -r,  0,  p ;
 			      r,  q, -p,  0];
-			dQ = 1/2 * Wq * Q;
+			dQ = 1/2 * Wq * self.Q;
 			dq0 = dQ(1); dq1 = dQ(2); dq2 = dQ(3); dq3 = dQ(4);
 
 			% Keep track of body rotation w.r.t. vehicle frame
@@ -197,7 +198,7 @@ classdef Engine < handle
 			[Fa, Ma] = self.aerodynamics(t, sc, pl);
 
 			% Control moments (body axes)
-			Mc = self.controls(Ma, sc);
+			Mc = self.controls(t, Ma, sc);
 
 			% Velocity (inertial, body axes)
 			F = Fg + Fa;
@@ -249,7 +250,7 @@ classdef Engine < handle
 		% Basic controls
 		% - Rate damping (W -> 0)
 		% - Cancel non-pitching external moments
-		function Mc = controls(self, Ma, sc)
+		function Mc = controls(self, ~, Ma, sc)
 			% Lyapunov (nonlinear) control law
 			% Note: sc.damp is the proportional constant
 			%       - If 1 value, same for all components
@@ -259,14 +260,14 @@ classdef Engine < handle
 		end
 
 		% ODE event function
-		function [val, ter, dir] = event(self, sc, pl)
+		function [val, ter, dir] = event(self, ~, sc, pl)
 			% Can be extended by overriding / concatenating to its results
 			% Note: [DeployAltitude, SkipAtmosphere]
 			Umag = norm(self.U);
 			Ucir = sqrt(pl.mu / self.rad);
-			skip = ~(self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
+			skip = (self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
 			val = [self.alt - sc.deploy; skip];
-			dir = [-1; -1];
+			dir = [-1; +1];
 			ter = [true; true];
 		end
 	end
