@@ -10,6 +10,10 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	[lat, lon, alt, rad, Lie] = pl.xyz2lla(x, y, z, t);
 	ran = pl.greatcircle(rad(1), lat(1), lon(1), rad, lat, lon);
 
+	% ECI -> ECEF
+	X = Lie * reshape([x, y, z].', [], 1);
+	xE = -X(3:3:end); yE = X(1:3:end); zE = -X(2:3:end);
+
 	% Euler angles
 	[ph, th, ps, Lvb] = quaternion2euler(q0, q1, q2, q3, lat, lon, Lie);
 
@@ -56,14 +60,26 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	CL = sc.Cx('CL', AoA, M, Kn);
 	CD = sc.Cx('CD', AoA, M, Kn);
 
+	% Generate sphere
+	NP = 100;
+	lats = linspace(-pi/2, +pi/2, NP).';
+	lons = linspace(0, 2*pi, NP); % to conform with available topography
+	X = pl.R * cos(lats) * cos(lons);
+	Y = pl.R * cos(lats) * sin(lons);
+	Z = pl.R * sin(lats) * ones(size(lons));
+	topo = load('topo.mat'); % load Earth topography
+
 	% X-Y-Z
 	figure;
 	hold('on');
-	plot3(x/1e3, z/1e3, y/1e3);
-	plot3(0, 0, 0, 'k*');
+	surface(X/1e3, Y/1e3, Z/1e3, 'FaceColor', 'texturemap', 'CData', topo.topo, 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
+	colormap(topo.topomap1);
+	plot3(xE/1e3, yE/1e3, zE/1e3, 'Color', 'red');
 	xlabel('$X$ [km]');
 	ylabel('$Y$ [km]');
 	zlabel('$Z$ [km]');
+	axis('equal');
+	view(3);
 
 	% Trajectory vs. time
 	figure;

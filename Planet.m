@@ -3,6 +3,7 @@ classdef Planet < matlab.mixin.Copyable
 	% Base class to define properties of celestial bodies
 
 	properties
+		R; % mean radius [m]
 		mu; % standard gravitational parameter [m^3/s^2]
 		atm; % atmospheric model [Atmosphere]
 		ellipsoid; % reference ellipsoid object
@@ -17,6 +18,7 @@ classdef Planet < matlab.mixin.Copyable
 		function self = Planet(data)
 			if nargin
 				% Note: data *will* have the following properties since they are taken from defaults if not provided
+				self.R = data.R;
 				self.mu = self.G * data.M;
 				self.atm = data.atm;
 			end

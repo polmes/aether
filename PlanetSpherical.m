@@ -1,18 +1,11 @@
 classdef PlanetSpherical < Planet
 	% PlanetSpherical
 
-	properties
-		R; % radius [m]
-	end
-
 	methods
 		% Constructor
 		function self = PlanetSpherical(data)
 			% Call superclass constructor
 			self@Planet(data);
-
-			% Additional properties
-			self.R = data.R;
 
 			% Construct sphere object
 			self.ellipsoid = referenceSphere;
