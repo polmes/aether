@@ -16,7 +16,7 @@ classdef PlanetSpherical < Planet
 		function [lat, lon, alt, rad, Lie] = xyz2lla(self, x, y, z, ~)
 			rad = sqrt(sum([x, y, z].^2, 2));
 			lat = asin(-y ./ rad);
-			lon = asin(x ./ (rad .* cos(lat)));
+			lon = atan2(x, -z);
 			alt = rad - self.R;
 			Lie = eye(3);
 		end
@@ -25,7 +25,7 @@ classdef PlanetSpherical < Planet
 		function [lat, lon, alt] = X2lla(self, X, ~)
 			rad = norm(X);
 			lat = asin(-X(2) ./ rad);
-			lon = asin(X(1) ./ (rad .* cos(lat)));
+			lon = atan2(X(1), -X(3));
 			alt = rad - self.R;
 		end
 
