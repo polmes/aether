@@ -18,7 +18,7 @@ classdef PlanetSpherical < Planet
 			lat = asin(-y ./ rad);
 			lon = atan2(x, -z);
 			alt = rad - self.R;
-			Lie = eye(3);
+			Lie = speye(3 * numel(x));
 		end
 
 		% ECEF -> LLA
@@ -44,8 +44,8 @@ classdef PlanetSpherical < Planet
 		end
 
 		% Fixed atmosphere in this case
-		function vel = atmspeed(~, ~, ~)
-			vel = 0;
+		function vel = atmspeed(~, rad, ~)
+			vel = zeros(numel(rad), 1);
 		end
 	end
 end
