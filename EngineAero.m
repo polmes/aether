@@ -88,7 +88,7 @@ classdef EngineAero < Engine
 
 			% Moments (N)
 			rCG = Lnb * sc.CG; % note: CG in spacecraft object is already aft-CG
-			Ma = qS * sc.L * (CmAft + Cmq) * [0; 1; 0] + cross(rCG, Fa);
+			Ma = qS * sc.L * (CmAft + Cmq) * [0; cos(self.beta); sin(self.beta)] + cross(rCG, Fa);
 
 			% Vectors in body frame (N -> B)
 			Fa = Lnb * Fa;
