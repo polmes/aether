@@ -17,48 +17,24 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	% Euler angles
 	[ph, th, ps, Lvb] = quaternion2euler(q0, q1, q2, q3, lat, lon, Lie);
 
-	% Absolute velocity
-	Umag = sqrt(sum([u, v, w].^2, 2));
+	% Velocities
+	Urel = reshape([u, v, w].', [], 1) - Lvb * reshape(cat(2, pl.atmspeed(rad, lat), zeros(N, 1), zeros(N, 1)).', [], 1);
+	Umag = sqrt(sum([u, v, w].^2, 2)); % inertial
+	Uinf = sqrt(sum(reshape(Urel.^2, 3, []))).'; % freestream
+
+	% Angle of Attack
+	totalAoA = acos(Urel(1:3:end) ./ Uinf);
+	clockAoA = atan2(Urel(2:3:end), Urel(3:3:end));
 
 	% Environment
 	[~, MFP, a] = pl.atm.trajectory(t, alt, lat, lon);
-
-	% Knudsen number
-	Kn = MFP / sc.L;
-
-	if size(S, 2) > 13
-		% Relative velocity
-		Urel = reshape([u, v, w].', [], 1) - Lvb * reshape(cat(2, pl.atmspeed(rad, lat), zeros(N, 1), zeros(N, 1)).', [], 1);
-		Uinf = sqrt(sum(reshape(Urel.^2, 3, []))).';
-
-		% [NB] = B -> N
-		delta = S(:,14);
-		i1 = 1:3:(1+(N-1)*3);
-		i2 = 2:3:(2+(N-1)*3);
-		i3 = 3:3:(3+(N-1)*3);
-		i = [i1, i2, i2, i3, i3];
-		j = [i1, i2, i3, i2, i3];
-		k = [ones(N, 1); cos(delta); sin(delta); -sin(delta); cos(delta)];
-		Lbn = sparse(i, j, k);
-
-		% Velocity in nominal frame
-		U = Lbn * Urel;
-
-		% (Total) Angle of Attack
-		Uyz = U(3:3:end) .* sqrt((U(2:3:end) ./ U(3:3:end)).^2 + 1);
-		AoA = atan2(Uyz, U(1:3:end));
-	else
-		% No relative velocity
-		Uinf = Umag;
-		AoA = atan2(w, u);
-	end
-
-	% Mach number
-	M = Uinf ./ a;
+	Kn = MFP / sc.L; % Knudsen
+	M = Uinf ./ a; % Mach
 
 	% Aerodynamic coefficients
-	CL = sc.Cx('CL', AoA, M, Kn);
-	CD = sc.Cx('CD', AoA, M, Kn);
+	CL = sc.Cx('CL', totalAoA, M, Kn);
+	CD = sc.Cx('CD', totalAoA, M, Kn);
+	[~, ~, CLv] = relativecoeff(totalAoA, clockAoA, Lvb, CL, CD);
 
 	% Generate sphere
 	NP = 100;
@@ -97,7 +73,7 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	figure;
 	plot(Umag, alt / 1e3);
 	grid('on');
-	xlabel('Velocity [m/s]');
+	xlabel('Inertial Velocity [m/s]');
 	ylabel('Altitude [km]');
 
 	% Altitude + Mach vs. range
@@ -117,24 +93,28 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	grid('on');
 	xlabel('Time [s]');
 	yyaxis('left');
-	plot(t, rad2deg(AoA));
+	hold('on');
+	plot(t, rad2deg(totalAoA));
+	plot(t, rad2deg(clockAoA), ':');
 	ylabel('Angle of Attack [$^\circ$]');
 	yyaxis('right');
 	plot(t, Kn);
 	ylabel('Knudsen');
 	set(gca, 'YScale', 'log');
 	xlim([0 inf]);
+	legend('$\alpha_T$', '$\phi_{\alpha_T}$');
 
 	% Aerodynamics vs. time
 	figure;
 	hold('on');
 	plot(t, CL);
 	plot(t, CD);
+	plot(t, -CLv); % invert sign s.t. [+] = up, [-] = down
 	grid('on');
-	xlim([0 inf]);
 	xlabel('Time [s]');
 	ylabel('Coefficient');
-	legend('$C_L$', '$C_D$');
+	xlim([0 inf]);
+	legend('$C_L$', '$C_D$', '$C_{L\,v}$');
 
 	% Attitude vs. time
 	figure;
@@ -196,7 +176,7 @@ function [ph, th, ps, Lvb] = quaternion2euler(q0, q1, q2, q3, lat, lon, Lie)
 	% [BV] = V -> B
 	% [BV] = [BI][IE][EV]
 	Lvb = Lib * Lei * Lve;
-	Lvb(abs(Lvb) < 1e-12) = 0;
+	% Lvb(abs(Lvb) < 1e-12) = 0;
 
 	% DCM -> Euler
 	sz = size(Lvb);
@@ -218,4 +198,31 @@ function [ph, th, ps, Lvb] = quaternion2euler(q0, q1, q2, q3, lat, lon, Lie)
 			eu(1 + idx(l):idx(l+1)) = -sign(eu(idx(l)+1)) * 2*pi + eu(1 + idx(l):idx(l+1));
 		end
 	end
+end
+
+function [CLe, CLs, CLd] = relativecoeff(totalAoA, clockAoA, Lvb, CL, CD)
+	% Common
+	N = numel(totalAoA);
+	i1 = 1:3:(1+(N-1)*3);
+	i2 = 2:3:(2+(N-1)*3);
+	i3 = 3:3:(3+(N-1)*3);
+	i = [i1, i1, i1, i2, i2, i2, i3, i3, i3];
+	j = [i1, i2, i3, i1, i2, i3, i1, i2, i3];
+
+	% [BW] = (W -> B)
+	k = [cos(totalAoA)               ;  zeros(N, 1)   ; -sin(totalAoA)                ;
+	     sin(clockAoA).*sin(totalAoA);  cos(clockAoA) ;  sin(clockAoA).*cos(totalAoA) ;
+	     cos(clockAoA).*sin(totalAoA); -sin(clockAoA) ;  cos(clockAoA).*cos(totalAoA)];
+	Lwb = sparse(i, j, k);
+
+	% If no CD, then only use CL
+	if nargin < 5
+		CD = zeros(N, 1);
+	end
+
+	% Compute aerodynamic coefficients in vehicle frame
+	Cv = Lvb.' * Lwb * reshape(-[CD, zeros(N, 1), CL].', [], 1);
+	CLe = Cv(1:3:end); % east
+	CLs = Cv(2:3:end); % south
+	CLd = Cv(3:3:end); % down
 end
