@@ -11,8 +11,7 @@ classdef Spacecraft < handle
 		damp; % damping coefficient/s to represent control RCS thrusters [1x1 or 3x1]
 		hold; % attitude hold coefficient/s [1x1 or 3x1]
 		tref; % array of times in which to perform bank angle rotation [s]
-		W; % angular velocity for bank angle rotations [rad/s]
-		maxMc; % maximum torque achievable by the RCS (control system) [N.m]
+		maxW; % angular velocity rate-limiter for bank angle rotations [rad/s]
 	end
 
 	properties (Constant, Access = protected)
@@ -49,8 +48,7 @@ classdef Spacecraft < handle
 				self.damp = data.damping;
 				self.hold = data.holding;
 				self.tref = [data.times; NaN]; % append NaN to increase array length
-				self.W = deg2rad(data.banking); % [deg/s] -> [rad/s]
-				self.maxMc = data.maxRCS;
+				self.maxW = deg2rad(data.maxbank); % [deg/s] -> [rad/s]
 
 				% Store database as struct
 				self.db = util.open(data.database, 'DataDir', self.datadir);

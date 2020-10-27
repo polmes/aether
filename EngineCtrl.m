@@ -26,12 +26,12 @@ classdef EngineCtrl < EngineAeroDelta
 			Wdir = self.Urel / norm(self.Urel);
 
 			% Rate
-			Wref = zeros(3, 1) + self.bank * self.dir * sc.W * Wdir;
+			Wref = zeros(3, 1) + self.bank * self.dir * sc.maxW * Wdir;
 			dWref = zeros(3, 1);
 			deltaW = self.W - Wref;
 
 			% Attitude - reference w.r.t. inertial (by adding body @ t0 w.r.t. inertial @ t0 + reference @ t w.r.t. body @ t0)
-			PRA = self.dir * sc.W * (t - self.t0);
+			PRA = self.dir * sc.maxW * (t - self.t0);
 			PRV = Wdir;
 			q0 = cos(PRA/2); q1 = PRV(1) * sin(PRA/2); q2 = PRV(2) * sin(PRA/2); q3 = PRV(3) * sin(PRA/2);
 			Qref = [q0, -q1, -q2, -q3;

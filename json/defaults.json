@@ -10,9 +10,8 @@
 		"cg": [1.1455, 0, 0.1600],
 		"damping": 1000,
 		"holding": 1000,
-		"banking": 10,
-		"times": [30, 60],
-		"maxRCS": [1.7e3, 1.7e3, 1.7e3]
+		"maxbank": 20,
+		"times": [30, 60]
 	},
 	"planet": {
 		"body": "Earth",
