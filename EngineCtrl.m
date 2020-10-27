@@ -1,4 +1,4 @@
-classdef EngineCtrl < EngineAero
+classdef EngineCtrl < EngineAeroDelta
 	properties (Access = protected)
 		% New state scalars
 		bank = false;

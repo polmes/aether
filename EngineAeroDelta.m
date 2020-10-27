@@ -1,4 +1,4 @@
-classdef EngineAero < Engine
+classdef EngineAeroDelta < Engine
 	properties (Access = protected)
 		% New state scalars
 		dAoA = 0;
