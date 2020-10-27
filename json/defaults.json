@@ -1,37 +1,37 @@
 {
 	"spacecraft": {
 		"type": "Capsule",
+		"database": "dbComb",
 		"mass": 5856.9,
 		"length": 3.9116,
 		"nose": 4.6939,
-		"inertia": [8000, 7000, 7000],
-		"database": "apolloKn",
-		"deploy": 7.3e3,
 		"cg": [1.1455, 0, 0.1600],
-		"damping": 1000,
-		"holding": 1000,
+		"inertia": [8022, 7149, 6421, 83, -14, -525],
+		"deploy": 7.3e3,
+		"damping": 1e4,
+		"holding": 1e4,
 		"maxbank": 20,
-		"times": [30, 60]
+		"times": [10, 70]
 	},
 	"planet": {
 		"body": "Earth",
-		"type": "Spherical",
+		"type": "Rotating",
 		"atmosphere": "MSIS"
 	},
 	"initial": {
-		"datetime": "1967/11/09 20:00:00",
+		"datetime": "1969/07/24 16:35:05",
 		"altitude": 121.92e3,
-		"latitude": 0,
-		"longitude": 0,
-		"velocity": 11140,
-		"flightpath": -7.01,
-		"heading": 0,
-		"attitude": [0, 0, 0],
+		"latitude": -3.88,
+		"longitude": 171.96,
+		"velocity": 11032,
+		"flightpath": -6.52,
+		"heading": -39.82,
+		"attitude": [0, -31.52, -39.82],
 		"angular": [0, 0, 0],
 		"bank": 0
 	},
 	"integration": {
-		"engine": "",
+		"engine": "GuidanceRate",
 		"maxtime": 2000
 	}
 }
