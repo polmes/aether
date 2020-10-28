@@ -77,6 +77,9 @@ function CxMC(casefile, analysisfile)
 	Q = Q{1};
 
 	% Save
-	filename = [mfilename '_' num2str(stdv, '%.2f') '_' casefile '_' num2str(NS) '_' num2str(tol(1), '%.0e') '_' num2str(tol(2), '%.0e')];
+	filename = [mfilename '_' analysisfile];
+	if casefile
+		filename = [filename '_' casefile];
+	end
 	util.store(filename, inputs, NS, Y, U, Q, sc, pl);
 end

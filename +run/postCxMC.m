@@ -1,17 +1,14 @@
-function postCxMC(casefile, analysisfile)
+function postCxMC(analysisfile)
 	%% INPUT
 
 	% Handle different cases
-	if nargin < 2
+	if nargin < 1
 		analysisfile = mfilename;
 	end
-	if nargin < 1
-		casefile = '';
-	end
-	[~, ~, ~, ~, ~, opts] = util.pre(casefile, analysisfile);
+	[~, ~, ~, ~, ~, opts] = util.pre('', analysisfile);
 
 	% Analysis variables
-	name = opts.name;
+	name = [extractAfter(mfilename, 'post') '_' opts.name];
 	NT = opts.steps;
 
 	% Load data
