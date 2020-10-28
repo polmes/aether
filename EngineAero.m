@@ -1,11 +1,11 @@
 classdef EngineAero < Engine
 	properties (Access = protected)
 		% New state scalars
-		Uinf = 0;
-		dAoA = 0;
+		Uinf;
+		dAoA;
 
 		% New state vector
-		Urel = zeros(3, 1);
+		Urel;
 	end
 
 	methods (Access = protected)
@@ -55,6 +55,18 @@ classdef EngineAero < Engine
 
 			% Moments
 			Ma = qS * sc.L * (CmAft + Cmq) * Lwb * [0; 1; 0] + cross(sc.CG, Fa); % note: CG in spacecraft object is already aft-CG
+		end
+
+		function initreset(self)
+			% Call superclass method
+			initreset@Engine(self);
+
+			% New state scalars
+			self.Uinf = 0;
+			self.dAoA = 0;
+
+			% New state vector
+			self.Urel = zeros(3, 1);
 		end
 	end
 end

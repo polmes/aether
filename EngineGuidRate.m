@@ -1,16 +1,16 @@
 classdef EngineGuidRate < EngineAero
 	properties (Access = protected)
 		% New state scalars
-		PRA = 0;
-		bank = false;
-		count = 1;
-		target = 0;
+		PRA;
+		bank;
+		count;
+		target;
 
 		% New state vectors
-		Q0 = zeros(4, 1);
-		Qir = zeros(4, 1);
-		MRP = zeros(3, 1);
-		PRV = zeros(3, 1);
+		Q0;
+		Qir;
+		MRP;
+		PRV;
 	end
 
 	properties (Access = protected, Constant)
@@ -72,6 +72,23 @@ classdef EngineGuidRate < EngineAero
 			val = [val; t - sc.tref(self.count)];
 			ter = [ter; false];
 			dir = [dir; +1];
+		end
+
+		function initreset(self)
+			% Call superclass method
+			initreset@EngineAero(self);
+
+			% New state scalars
+			self.PRA = 0;
+			self.bank = false;
+			self.count = 1;
+			self.target = 0;
+
+			% New state vectors
+			self.Q0 = zeros(4, 1);
+			self.Qir = zeros(4, 1);
+			self.MRP = zeros(3, 1);
+			self.PRV = zeros(3, 1);
 		end
 	end
 end

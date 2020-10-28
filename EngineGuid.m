@@ -1,12 +1,12 @@
 classdef EngineGuid < EngineAero
 	properties (Access = protected)
 		% New state scalars
-		bank = false;
-		count = 1;
+		bank;
+		count;
 
 		% New state vectors
-		Qir = zeros(4, 1);
-		MRP = zeros(3, 1);
+		Qir;
+		MRP;
 	end
 
 	properties (Access = protected, Constant)
@@ -62,6 +62,19 @@ classdef EngineGuid < EngineAero
 			val = [val; t - sc.tref(self.count)];
 			ter = [ter; false];
 			dir = [dir; +1];
+		end
+
+		function initreset(self)
+			% Call superclass method
+			initreset@EngineAero(self);
+
+			% New state scalars
+			self.bank = false;
+			self.count = 1;
+
+			% New state vectors
+			self.Qir = zeros(4, 1);
+			self.MRP = zeros(3, 1);
 		end
 	end
 end

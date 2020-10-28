@@ -13,12 +13,12 @@ classdef Engine < handle
 		alt;
 
 		% State vectors
-		U = zeros(3, 1);
-		W = zeros(3, 1);
-		Q = zeros(4, 1);
+		U;
+		W;
+		Q;
 
 		% Rotation matrix
-		Lvb = zeros(3);
+		Lvb;
 	end
 
 	methods % (Access = public)
@@ -52,6 +52,9 @@ classdef Engine < handle
 
 		% Main method called to integrate in time
 		function [t, S, ie] = integrate(self, T, S, sc, pl)
+			% Reset variables for next integration
+			self.initreset();
+
 			% Prepare S0 if necessary
 			if numel(S) < self.NS
 				% [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r, ...]
@@ -269,6 +272,23 @@ classdef Engine < handle
 			val = [self.alt - sc.deploy; skip];
 			dir = [-1; +1];
 			ter = [true; true];
+		end
+
+		% Reset variables for next integration
+		function initreset(self)
+			% State scalars
+			self.rad = 0;
+			self.lat = 0;
+			self.lon = 0;
+			self.alt = 0;
+
+			% State vectors
+			self.U = zeros(3, 1);
+			self.W = zeros(3, 1);
+			self.Q = zeros(4, 1);
+
+			% Rotation matrix
+			self.Lvb = eye(3);
 		end
 	end
 end
