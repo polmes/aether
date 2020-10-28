@@ -32,7 +32,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	rho = pl.atm.trajectory(t, alt, lat, lon);
 
 	% Status
-	st = ie;
+	st = ie(end);
 
 	% Time elapsed
 	dur = t(end);
