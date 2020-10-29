@@ -70,20 +70,22 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	st = ie(end);
 
 	% Time elapsed
-	dur = t(end);
+	dur = interp2deploy(alt, t, sc);
 
 	% Range
-	ran = pl.greatcircle(rad(1), lat(1), lon(1), rad(end), lat(end), lon(end));
+	latf = interp2deploy(alt, lat, sc);
+	lonf = interp2deploy(alt, lon, sc);
+	ran = pl.greatcircle(rad(1), lat(1), lon(1), interp2deploy(alt, rad, sc), latf, lonf);
 
 	% Final velocity (relative)
-	Uend = Uinf(end);
+	Uend = interp2deploy(alt, Uinf, sc);
 
 	% Max speed (inertial)
 	maxU = max(Umag);
 
 	% Max-g
-	% maxG = max(sqrt(sum((diff([u, v, w]) ./ diff(t)).^2, 2)));
-	maxG = max(abs(diff(Umag) ./ diff(t)));
+	g0 = pl.gravity(rad(N), lat(N), lon(N), alt(N));
+	maxG = max(abs(diff(Umag(1:N-1)) ./ diff(t(1:N-1)))) / g0;
 
 	% Max-Q
 	maxQ = max(1/2 * rho .* Uinf.^2);
@@ -94,11 +96,20 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	% Radiative heat flux
 	a = 1.072e6 * Uinf.^(-1.88) .* rho.^(-0.325);
 	dqr = Cr * sc.R.^a .* rho.^(1.22) .* interp1(f(:,1), f(:,2), Uinf);
-	dqr(a > 1) = 0; % out-of-range
+	dqr(a > 1) = 0; % out-otf-range
+
+	% Max heat flux
+	dq = dqc + dqr;
+	maxdq = max(dq);
 
 	% Integrated heat
-	dq = dqc + dqr;
 	q = trapz(t, dq);
 
-	QoI = [st, dur, ran, Uend, maxU, maxG, maxQ, q];
+	QoI = [st, dur, ran, Uend, latf, lonf, maxU, maxG, maxQ, maxdq, q];
+
+	function yq = interp2deploy(alt, q, sc)
+		[x, idx] = unique(alt);
+		y = q(idx);
+		yq = interp1(x, y, sc.deploy, 'linear', 'extrap');
+	end
 end
