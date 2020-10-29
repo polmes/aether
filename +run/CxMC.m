@@ -6,7 +6,7 @@ function CxMC(casefile, analysisfile)
 	if nargin < 1
 		casefile = '';
 	end
-	
+
 	% Global variables
 	[~, ~, ~, S0, T, opts] = util.pre(casefile, analysisfile);
 
@@ -36,13 +36,13 @@ function CxMC(casefile, analysisfile)
 	spmd(NP)
 		% Worker objects
 		[sc, pl, en] = util.pre(casefile, analysisfile);
-		
+
 		% Initialize stochastic objects
 		scs = SpacecraftStochastic(sc, inputs);
-		
+
 		% Solver setup
 		en.options('RelTol', tol(1), 'AbsTol', tol(2), 'ShowWarnings', false);
-		
+
 		% Indexing
 		j = labindex;
 		if labindex ~= NP
@@ -87,9 +87,9 @@ function CxMC(casefile, analysisfile)
 	pl = pl{1};
 
 	% Save
-	filename = [mfilename '_' analysisfile];
+	filename = [mfilename '-' analysisfile];
 	if casefile
-		filename = [filename '_' casefile];
+		filename = [filename '-' casefile];
 	end
 	util.store(filename, inputs, NS, Y, U, Q, sc, pl);
 end
