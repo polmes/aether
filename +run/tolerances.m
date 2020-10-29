@@ -20,7 +20,7 @@ function tolerances(casefile, analysisfile)
 	NT = numel(tol);
 	t = cell(1, NT);
 	S = cell(1, NT);
-	ie = zeros(1, NT);
+	ie = cell(1, NT);
 
 	% Loop over tolerances
 	for i = 1:NT
@@ -33,7 +33,7 @@ function tolerances(casefile, analysisfile)
 		% Trajectory simulation
 		try
 			tic;
-			[t{i}, S{i}, ie(i)] = engine.integrate(T, S0, sc, pl);
+			[t{i}, S{i}, ie{i}] = engine.integrate(T, S0, sc, pl);
 			rt = toc;
 			disp([tolstr ' - RunTime = ' num2str(rt, '%.2f') ' seconds']);
 		catch

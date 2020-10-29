@@ -3,7 +3,7 @@ function test(varargin)
 	[sc, pl, engine, S0, T] = util.pre(varargin{:});
 
 	% Solver setup
-	engine.options('RelTol', 1e-3, 'AbsTol', 1e-5);
+	engine.options('RelTol', 1e-5, 'AbsTol', 1e-7);
 
 	% Trajectory simulation
 	tic;

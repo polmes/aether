@@ -1,5 +1,5 @@
 {
 	"mintol": -1,
-	"maxtol": -10,
-	"numtol": 10
+	"maxtol": -7,
+	"numtol": 7
 }
