@@ -7,11 +7,11 @@
 		"nose": 4.6939,
 		"cg": [1.1455, 0, 0.1600],
 		"inertia": [8022, 7149, 6421, 83, -14, -525],
-		"deploy": 7.3e3,
+		"deploy": 7315.2,
 		"damping": 1e4,
 		"holding": 1e4,
 		"maxbank": 20,
-		"times": [10, 70]
+		"times": 40
 	},
 	"planet": {
 		"body": "Earth",
@@ -31,7 +31,7 @@
 		"bank": 0
 	},
 	"integration": {
-		"engine": "GuidanceRate",
+		"engine": "GuidanceAltitude",
 		"maxtime": 2000
 	}
 }
