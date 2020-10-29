@@ -40,7 +40,7 @@ function postCxMC(analysisfile)
 
 	% QoI of interest
 	Qgood = Q(good, [3 4]);
-	% Qgood(:,1) = Qgood(:,1) * pl.R / 1e3; % latitude to range [km]
+	Qgood(:,1) = Qgood(:,1) / 1e3; % range [m] to [km]
 	% [~, a] = pl.atm.rarefaction(sc.deploy);
 	% Qgood(:,2) = Qgood(:,2) / a; % velocity to Mach
 
