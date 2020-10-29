@@ -9,14 +9,6 @@ classdef EngineAero < Engine
 	end
 
 	methods (Access = protected)
-		function dS = motion(self, t, S, sc, pl)
-			% Call superclass method
-			[dS, dU] = motion@Engine(self, t, S, sc, pl);
-
-			% Keep track of angle of attack rate
-			self.dAoA = (self.Urel(1) * dot(self.Urel, dU) - dU(1) * self.Uinf^2) / (self.Uinf^2 * sqrt(sum(self.Urel(2:3).^2)));
-		end
-
 		function [Fa, Ma] = aerodynamics(self, t, sc, pl)
 			% Environment + Relative Velocity
 			[rho, MFP, a, W] = pl.atm.trajectory(t, self.alt, self.lat, self.lon);
@@ -55,6 +47,14 @@ classdef EngineAero < Engine
 
 			% Moments
 			Ma = qS * sc.L * (CmAft + Cmq) * Lwb * [0; 1; 0] + cross(sc.CG, Fa); % note: CG in spacecraft object is already aft-CG
+		end
+
+		function [val, ter, sgn] = event(self, t, sc, pl)
+			% Call superclass method
+			[val, ter, sgn] = event@Engine(self, t, sc, pl);
+
+			% Keep track of angle of attack rate
+			self.dAoA = (self.Urel(1) * dot(self.Urel, self.dU) - self.dU(1) * self.Uinf^2) / (self.Uinf^2 * sqrt(sum(self.Urel(2:3).^2)));
 		end
 
 		function initreset(self)

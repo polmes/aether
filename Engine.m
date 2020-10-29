@@ -16,9 +16,14 @@ classdef Engine < handle
 		U;
 		W;
 		Q;
+		dU;
 
 		% Rotation matrix
 		Lvb;
+	end
+
+	properties (Access = protected, Constant)
+		offalt = 100; % offset integration end condition by some meters to interpolate final quantities
 	end
 
 	methods % (Access = public)
@@ -51,7 +56,7 @@ classdef Engine < handle
 		end
 
 		% Main method called to integrate in time
-		function [t, S, ie] = integrate(self, T, S, sc, pl)
+		function [t, S, ie, te, Se] = integrate(self, T, S, sc, pl)
 			% Reset variables for next integration
 			self.initreset();
 
@@ -67,9 +72,9 @@ classdef Engine < handle
 			end
 
 			self.opts.Events = @(t, S) self.event(t, sc, pl);
-			[t, S, ~, ~, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
+			[t, S, te, Se, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
 
-			if ~isempty(ie) && self.showwarnings
+			if t(end) < T && ~isempty(ie) && self.showwarnings
 				warning(self.eventmssgs{ie(end)});
 			end
 		end
@@ -148,7 +153,7 @@ classdef Engine < handle
 
 	methods (Access = protected)
 		% 6-DOF equations of motion
-		function [dS, dU] = motion(self, t, S, sc, pl)
+		function dS = motion(self, t, S, sc, pl)
 			% sc = [Spacecraft]
 			% pl = [Planet]
 
@@ -205,8 +210,8 @@ classdef Engine < handle
 
 			% Velocity (inertial, body axes)
 			F = Fg + Fa;
-			dU = F / sc.m - cross(self.W, self.U);
-			du = dU(1); dv = dU(2); dw = dU(3);
+			self.dU = F / sc.m - cross(self.W, self.U);
+			du = self.dU(1); dv = self.dU(2); dw = self.dU(3);
 
 			% Angular velocity (body)
 			M = Ma + Mc;
@@ -269,7 +274,7 @@ classdef Engine < handle
 			Umag = norm(self.U);
 			Ucir = sqrt(pl.mu / self.rad);
 			skip = (self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
-			val = [self.alt - sc.deploy; skip];
+			val = [self.alt - (sc.deploy - self.offalt); skip];
 			dir = [-1; +1];
 			ter = [true; true];
 		end
@@ -286,6 +291,7 @@ classdef Engine < handle
 			self.U = zeros(3, 1);
 			self.W = zeros(3, 1);
 			self.Q = zeros(4, 1);
+			self.dU = zeros(3, 1);
 
 			% Rotation matrix
 			self.Lvb = eye(3);

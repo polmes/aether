@@ -27,11 +27,11 @@ classdef EngineAeroDelta < Engine
 	methods (Access = protected)
 		function dS = motion(self, t, S, sc, pl)
 			% Call superclass method
-			[dS, dU] = motion@Engine(self, t, S, sc, pl);
+			dS = motion@Engine(self, t, S, sc, pl);
 
 			% Keep track of angle of attack rate
 			Uinf = norm(self.Urel);
-			self.dAoA = (self.Urel(1) * dot(self.Urel, dU) - dU(1) * Uinf^2) / (Uinf^2 * sqrt(sum(self.Urel(2:3).^2)));
+			self.dAoA = (self.Urel(1) * dot(self.Urel, self.dU) - self.dU(1) * Uinf^2) / (Uinf^2 * sqrt(sum(self.Urel(2:3).^2)));
 
 			% Keep track of bank angle offset
 			self.delta = S(14);
