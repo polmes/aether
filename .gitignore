@@ -5,6 +5,10 @@
 mat/
 fig/
 
+# Symlink directories
+mat
+fig
+
 # Input files
 *_inputs.m
 json/*_*.json
