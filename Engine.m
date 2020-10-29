@@ -268,14 +268,14 @@ classdef Engine < handle
 		end
 
 		% ODE event function
-		function [val, ter, dir] = event(self, ~, sc, pl)
+		function [val, ter, sgn] = event(self, ~, sc, pl)
 			% Can be extended by overriding / concatenating to its results
 			% Note: [DeployAltitude, SkipAtmosphere]
 			Umag = norm(self.U);
 			Ucir = sqrt(pl.mu / self.rad);
 			skip = (self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
 			val = [self.alt - (sc.deploy - self.offalt); skip];
-			dir = [-1; +1];
+			sgn = [-1; +1];
 			ter = [true; true];
 		end
 

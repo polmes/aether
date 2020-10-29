@@ -34,9 +34,9 @@ classdef EngineGuid < EngineAero
 			Mc = sc.I * (dWref - cross(self.W, Wref)) + cross(self.W, sc.I * self.W) - diag(sc.hold) * self.MRP - diag(sc.damp) * deltaW;
 		end
 
-		function [val, ter, dir] = event(self, t, sc, pl)
+		function [val, ter, sgn] = event(self, t, sc, pl)
 			% Call superclass method
-			[val, ter, dir] = event@Engine(self, t, sc, pl);
+			[val, ter, sgn] = event@EngineAero(self, t, sc, pl);
 
 			if ~self.bank && t >= sc.tref(self.count)
 				% Reference attitude
@@ -61,7 +61,7 @@ classdef EngineGuid < EngineAero
 			% Append new event outputs
 			val = [val; t - sc.tref(self.count)];
 			ter = [ter; false];
-			dir = [dir; +1];
+			sgn = [sgn; +1];
 		end
 
 		function initreset(self)

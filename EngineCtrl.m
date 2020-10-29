@@ -63,9 +63,9 @@ classdef EngineCtrl < EngineAeroDelta
 			% end
 		end
 
-		function [val, ter, dir] = event(self, t, sc, pl)
+		function [val, ter, sgn] = event(self, t, sc, pl)
 			% Call superclass method
-			[val, ter, dir] = event@Engine(self, t, sc, pl);
+			[val, ter, sgn] = event@Engine(self, t, sc, pl);
 
 			% Start/stop bank angle rotations
 			% States:
@@ -111,7 +111,7 @@ classdef EngineCtrl < EngineAeroDelta
 			% Append new event outputs
 			val = [val; self.bank];
 			ter = [ter; false];
-			dir = [dir; 0];
+			sgn = [sgn; 0];
 		end
 	end
 end
