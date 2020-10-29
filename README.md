@@ -23,4 +23,4 @@ Additionally, the following packages provide extra functionality:
 - `+util` includes plotting and post-processing general functions
 - `+uq` includes several functions for uncertainty propagation
 
-Note as well that currently many shared parameters are defined in the `constants` file.
+Note as well that several databases and data are defined inside the `constants` directory.
