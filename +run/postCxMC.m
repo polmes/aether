@@ -1,11 +1,8 @@
-function postCxMC(analysisfile)
+function postCxMC(varargin)
 	%% INPUT
 
 	% Handle different cases
-	if nargin < 1
-		analysisfile = mfilename;
-	end
-	[~, ~, ~, ~, ~, opts] = util.pre('', analysisfile);
+	[~, ~, ~, ~, opts] = util.pre('', varargin{:});
 
 	% Analysis variables
 	name = [extractAfter(mfilename, 'post') '_' opts.name];

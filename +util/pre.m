@@ -1,4 +1,4 @@
-function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
+function [sc, pl, en, S0, opts] = pre(casefile, analysisfile)
 	% util.pre(casefile, analysisfile)
 	% Preprocesses input file and generates AETHER objects
 	%
@@ -12,7 +12,6 @@ function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
 	%   sc      :=  Spacecraft object
 	%   pl      :=  Planet object
 	%   S0      :=  Array of initial conditions
-	%   T       :=  Max ingeration time
 	%   en      :=  Engine object
 	%   opts    :=  Options structure for specific analysis
 
@@ -26,7 +25,7 @@ function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
 		hasanalysis = true;
 	end
 
-	% Load defaults
+	% Load case defaults
 	data = json2struct('defaults');
 	backup = data;
 
@@ -48,15 +47,27 @@ function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
 			data = backup;
 		end
 	end
+	
+	% Load analysis defaults if available
+	db = dbstack;
+	fn = db(end).name;
+	if isfile(fullfile('json/', [fn '.json']))
+		opts = json2struct(fn);
+		backup = opts;
+	end
 
-	% Append analysis inputs if available
+	% Override analysis defaults if provided
 	if hasanalysis
 		try
 			analysisdata = json2struct(analysisfile);
-			data.analysis = analysisdata;
-			opts = data.analysis;
+			fields = fieldnames(opts);
+			matches = isfield(analysisdata, fields);
+			for i = find(matches).'
+				opts.(fields{i}) = analysisdata.(fields{i});
+			end			
 		catch
-			util.exception('Error loading analysis data');
+			warning('Error loading case data. Reverting back to defaults...');
+			opts = backup;
 		end
 	end
 
@@ -92,9 +103,6 @@ function [sc, pl, en, S0, T, opts] = pre(casefile, analysisfile)
 	[p, q, r] = ang{:};
 	S0 = [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r, delta0];
 	S0 = S0(1:en.NS-1);
-
-	% Max integration time
-	T = data.integration.maxtime;
 end
 
 function json = json2struct(filename)

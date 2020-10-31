@@ -4,6 +4,7 @@ classdef Engine < handle
 		init = false;
 		integrator;
 		showwarnings;
+		T;
 		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'};
 
 		% State scalars
@@ -38,12 +39,16 @@ classdef Engine < handle
 			if ~self.init
 				p.addParameter('RelTol', 1e-12);
 				p.addParameter('AbsTol', 1e-13);
+				p.addParameter('TimeStep', 0.001);
+				p.addParameter('MaxTime', 2000);
 				p.addParameter('Integrator', @ode113); % or @ode45
 				p.addParameter('ShowWarnings', true);
 				self.init = true;
 			else
 				p.addParameter('RelTol', self.opts.RelTol);
 				p.addParameter('AbsTol', self.opts.AbsTol);
+				p.addParameter('TimeStep', self.opts.TimeStep);
+				p.addParameter('MaxTime', self.T);
 				p.addParameter('Integrator', self.integrator);
 				p.addParameter('ShowWarnings', self.showwarnings);
 			end
@@ -51,30 +56,32 @@ classdef Engine < handle
 
 			self.opts.RelTol = p.Results.RelTol;
 			self.opts.AbsTol = p.Results.AbsTol;
+			self.opts.TimeStep = p.Results.TimeStep;
+			self.T = p.Results.MaxTime;
 			self.integrator = p.Results.Integrator;
 			self.showwarnings = p.Results.ShowWarnings;
 		end
 
 		% Main method called to integrate in time
-		function [t, S, ie, te, Se] = integrate(self, T, S, sc, pl)
+		function [t, S, ie, te, Se] = integrate(self, S, sc, pl)
 			% Reset variables for next integration
 			self.initreset();
 
 			% Prepare S0 if necessary
 			if numel(S) < self.NS
-				% [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r, ...]
+				% [alt, Umag, gamma, chi, lat, lon, ph, th, ps, p, q, r]
 				S0 = self.prepare(S, pl);
 			elseif numel(S) == self.NS
-				% [rad, lat, lon, q0, q1, q2, q3, u, v, w, p, q, r, ...]
+				% [x, y, z, q0, q1, q2, q3, u, v, w, p, q, r]
 				S0 = S;
 			else
 				util.exception('Unexpected length of initial conditions array: %d', numel(S));
 			end
 
 			self.opts.Events = @(t, S) self.event(t, sc, pl);
-			[t, S, te, Se, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, T], S0, self.opts);
+			[t, S, te, Se, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, self.T], S0, self.opts);
 
-			if t(end) < T && ~isempty(ie) && self.showwarnings
+			if t(end) < self.T && ~isempty(ie) && self.showwarnings
 				warning(self.eventmssgs{ie(end)});
 			end
 		end

@@ -1,20 +1,11 @@
-function tolerances(casefile, analysisfile)
-	if nargin < 2
-		analysisfile = mfilename;
-	end
-	if nargin < 1
-		casefile = '';
-	end
-	[sc, pl, engine, S0, T, opts] = util.pre(casefile, analysisfile);
+function tolerances(varargin)
+	[sc, pl, engine, S0, opts] = util.pre(varargin{:});
 
 	% Analysis variables
 	tol = logspace(opts.mintol, opts.maxtol, opts.numtol);
 
 	% Solver setup
 	engine.options('ShowWarnings', false);
-	if isfield(opts, 'integrator')
-		engine.options('Integrator', eval(['@' opts.integrator]));
-	end
 
 	% Init
 	NT = numel(tol);
@@ -33,7 +24,7 @@ function tolerances(casefile, analysisfile)
 		% Trajectory simulation
 		try
 			tic;
-			[t{i}, S{i}, ie{i}] = engine.integrate(T, S0, sc, pl);
+			[t{i}, S{i}, ie{i}] = engine.integrate(S0, sc, pl);
 			rt = toc;
 			disp([tolstr ' - RunTime = ' num2str(rt, '%.2f') ' seconds']);
 		catch

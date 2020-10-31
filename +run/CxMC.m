@@ -1,19 +1,10 @@
-function CxMC(casefile, analysisfile)
-	% Handle inputs
-	if nargin < 2
-		analysisfile = mfilename;
-	end
-	if nargin < 1
-		casefile = '';
-	end
-
+function CxMC(varargin)
 	% Global variables
-	[~, ~, ~, S0, T, opts] = util.pre(casefile, analysisfile);
+	[~, ~, ~, S0, opts] = util.pre(varargin{:});
 
 	% Analysis variables
 	stdv = opts.std;
 	NS = opts.samples;
-	tol = opts.tolerances;
 
 	% Random inputs
 	inputs = [uq.RandomGaussian(1, stdv, true) , ... % for CL
@@ -41,7 +32,7 @@ function CxMC(casefile, analysisfile)
 		scs = SpacecraftStochastic(sc, inputs);
 
 		% Solver setup
-		en.options('RelTol', tol(1), 'AbsTol', tol(2), 'ShowWarnings', false);
+		en.options('ShowWarnings', false);
 
 		% Indexing
 		j = labindex;
@@ -63,7 +54,7 @@ function CxMC(casefile, analysisfile)
 			scs.update(Y(k,:));
 
 			% Trajectory simulation
-			[t, S, ie] = en.integrate(T, S0, scs, pl);
+			[t, S, ie] = en.integrate(S0, scs, pl);
 			U{i,1} = t;
 			U{i,2} = S;
 			U{i,3} = ie;

@@ -2,7 +2,6 @@ classdef EngineFactory < Factory
 	properties (Constant, Access = protected)
 		defaults = {'', @Engine, 'XYZ', @Engine, 'RLL', @EngineRLL, 'Aero', @EngineAero, 'AeroDelta', @EngineAeroDelta, 'Ctrl', @EngineCtrl, 'Control', @EngineCtrl, 'Guid', @EngineGuid, 'Guidance', @EngineGuid, 'GuidRate', @EngineGuidRate, 'GuidanceRate', @EngineGuidRate, 'GuidAlt', @EngineGuidAlt, 'GuidanceAltitude', @EngineGuidAlt};
 		exception = 'Unkown engine type provided';
-		opts = {'RelTol', 'AbsTol', 'ShowWarnings', 'Integrator'};
 	end
 
 	methods
@@ -10,12 +9,30 @@ classdef EngineFactory < Factory
 			self@Factory(varargin);
 		end
 
-		function sc = generate(self, data)
+		function en = generate(self, data)
 			%   data  :=  'integration' structure from case *.json
 
 			% Generate Engine (note: first argument defines class)
 			% Note: key-value options are left untouched
-			sc = self.constructor(data.engine);
+			en = self.constructor(data.engine);
+
+			% Basic options
+			en.options('RelTol', data.reltol, 'AbsTol', data.abstol, 'TimeStep', data.timestep, 'MaxTime', data.maxtime, 'ShowWarnings', data.verbose);
+
+			% Check if integrator is a valid function
+			integrator = str2func(data.solver);
+			try
+				nargin(integrator);
+				en.options('Integrator', integrator);
+			catch
+				integrator = str2func(['util.' data.solver]);
+				try
+					nargin(integrator);
+					en.options('Integrator', integrator);
+				catch
+					warning('Invalid integrator function provided. Reverting back to default...');
+				end
+			end
 		end
 	end
 

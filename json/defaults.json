@@ -32,6 +32,11 @@
 	},
 	"integration": {
 		"engine": "GuidanceAltitude",
-		"maxtime": 2000
+		"solver": "ode113",
+		"verbose": true,
+		"maxtime": 2000,
+		"reltol": 1e-5,
+		"abstol": 1e-7,
+		"timestep": 0.01
 	}
 }

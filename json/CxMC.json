@@ -1,5 +1,4 @@
 {
 	"std": 0.05,
-	"samples": 10,
-	"tolerances": [1e-5, 1e-7]
+	"samples": 10
 }
