@@ -84,7 +84,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	maxU = max(Umag);
 
 	% Max-g
-	g0 = pl.gravity(rad(N), lat(N), lon(N), alt(N));
+	g0 = 9.80665; % standard gravity [m/s^2]
 	maxG = max(abs(diff(Umag(1:N-1)) ./ diff(t(1:N-1)))) / g0;
 
 	% Max-Q
@@ -108,8 +108,8 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	QoI = [st, dur, ran, Uend, latf, lonf, maxU, maxG, maxQ, maxdq, q];
 
 	function yq = interp2deploy(alt, q, sc)
-		[x, idx] = unique(alt);
-		y = q(idx);
-		yq = interp1(x, y, sc.deploy, 'linear', 'extrap');
+		[xx, idx] = unique(alt);
+		yy = q(idx);
+		yq = interp1(xx, yy, sc.deploy, 'linear', 'extrap');
 	end
 end
