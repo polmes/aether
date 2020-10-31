@@ -12,6 +12,7 @@ classdef Spacecraft < handle
 		hold; % attitude hold coefficient/s [1x1 or 3x1]
 		tref; % array of times in which to perform bank angle rotation [s]
 		maxW; % angular velocity rate-limiter for bank angle rotations [rad/s]
+		F; % high-performance interpolants for db
 	end
 
 	properties (Constant, Access = protected)
@@ -52,12 +53,20 @@ classdef Spacecraft < handle
 
 				% Store database as struct
 				self.db = util.open(data.database, 'DataDir', self.datadir);
+
+				% Create interpolants for high performance
+				keys = fieldnames(self.db);
+				Cn = keys(strncmp(keys, 'C', 1));
+				self.F = struct();
+				for i = 1:numel(Cn)
+					self.F.(Cn{i}) = griddedInterpolant(self.db.alpha, self.db.M, self.db.Kn, self.db.(Cn{i}));
+				end
 			end
 		end
 
 		% Aerodynamic coefficients interpolant
-		function Cx = Cx(self, str, alpha, M, Kn)
-			Cx = interpn(self.db.alpha, self.db.M, self.db.Kn, self.db.(str), alpha, M, Kn);
+		function Cx = Cx(self, str, AoA, M, Kn)
+			Cx = self.F.(str)(AoA, M, Kn);
 		end
 	end
 end

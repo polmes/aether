@@ -29,6 +29,7 @@ classdef SpacecraftStochastic < Spacecraft
 			% Add random noise to first N Cx's: CL, CD, Cm, ..
 			for i = 1:numel(Y)
 				self.db.(self.Cn{i}) = self.mean.(self.Cn{i}) * Y(i);
+				self.F.(self.Cn{i}) = griddedInterpolant(self.db.alpha, self.db.M, self.db.Kn, self.db.(self.Cn{i}));
 			end
 		end
 	end
