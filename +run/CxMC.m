@@ -26,7 +26,7 @@ function CxMC(varargin)
 	% Parallelization
 	spmd(NP)
 		% Worker objects
-		[sc, pl, en] = util.pre(casefile, analysisfile);
+		[sc, pl, en] = util.pre(varargin{:});
 
 		% Initialize stochastic objects
 		scs = SpacecraftStochastic(sc, inputs);
@@ -78,9 +78,6 @@ function CxMC(varargin)
 	pl = pl{1};
 
 	% Save
-	filename = [mfilename '-' analysisfile];
-	if casefile
-		filename = [filename '-' casefile];
-	end
+	filename = [mfilename '-' char(join(varargin, '-'))];
 	util.store(filename, inputs, NS, Y, U, Q, sc, pl);
 end

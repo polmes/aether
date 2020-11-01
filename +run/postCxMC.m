@@ -5,7 +5,7 @@ function postCxMC(varargin)
 	[~, ~, ~, ~, opts] = util.pre('', varargin{:});
 
 	% Analysis variables
-	name = [extractAfter(mfilename, 'post') '_' opts.name];
+	name = [extractAfter(mfilename, 'post') '-' opts.name];
 	NT = opts.steps;
 
 	% Load data

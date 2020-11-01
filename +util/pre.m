@@ -47,27 +47,29 @@ function [sc, pl, en, S0, opts] = pre(casefile, analysisfile)
 			data = backup;
 		end
 	end
-	
-	% Load analysis defaults if available
-	db = dbstack;
-	fn = db(end).name;
-	if isfile(fullfile('json/', [fn '.json']))
-		opts = json2struct(fn);
-		backup = opts;
-	end
 
-	% Override analysis defaults if provided
-	if hasanalysis
-		try
-			analysisdata = json2struct(analysisfile);
-			fields = fieldnames(opts);
-			matches = isfield(analysisdata, fields);
-			for i = find(matches).'
-				opts.(fields{i}) = analysisdata.(fields{i});
-			end			
-		catch
-			warning('Error loading case data. Reverting back to defaults...');
-			opts = backup;
+	if nargout > 4
+		% Load analysis defaults if available
+		db = dbstack;
+		fn = db(end).name;
+		if isfile(fullfile('json/', [fn '.json']))
+			opts = json2struct(fn);
+			backup = opts;
+		end
+
+		% Override analysis defaults if provided
+		if hasanalysis
+			try
+				analysisdata = json2struct(analysisfile);
+				fields = fieldnames(opts);
+				matches = isfield(analysisdata, fields);
+				for i = find(matches).'
+					opts.(fields{i}) = analysisdata.(fields{i});
+				end
+			catch
+				warning('Error loading analysis data. Reverting back to defaults...');
+				opts = backup;
+			end
 		end
 	end
 
