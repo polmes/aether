@@ -5,7 +5,7 @@ classdef SpacecraftStochastic < Spacecraft
 	end
 
 	properties (Access = protected, Constant)
-		sorted = {'CL', 'CD', {'Cm', 'CmCG', 'CmAft'}, 'Cmq'}; % possible coefficient names in order of priority
+		sorted = {'CL', 'CD', {'Cm', 'CmAft'}, 'Cmq'}; % possible coefficient names in order of priority
 	end
 
 	methods
