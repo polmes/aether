@@ -200,7 +200,7 @@ classdef Engine < handle
 
 			% Keep track of body rotation w.r.t. vehicle frame
 			Lve = [cos(self.lon),  sin(self.lat)*sin(self.lon), -cos(self.lat)*sin(self.lon) ;
-			                   0,                cos(self.lat),                sin(self.lat) ;
+			       0            ,  cos(self.lat)              ,  sin(self.lat)               ;
 			       sin(self.lon), -sin(self.lat)*cos(self.lon),  cos(self.lat)*cos(self.lon)];
 			self.Lvb = Lib * Lie.' * Lve;
 			self.Lvb(abs(self.Lvb) < 1e-12) = 0; % for numerical stability
