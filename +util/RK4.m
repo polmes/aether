@@ -40,8 +40,9 @@ function [t, S, te, Se, ie] = RK4(odefun, Ts, S0, opts)
 		t(n+1) = t(n) + dt;
 
 		% Check for events
+		odefun(t(n+1), S(n+1,:)); % force update of Engine properties
 		[val, ter, sgn] = opts.Events(t(n+1), S(n+1,:));
-		idx = sign(val) ~= sign(ev) & sign(val) == sgn; % sign(val(sign(val) ~= sign(ev))) == sgn(sign(val) ~= sign(ev));
+		idx = sign(val) ~= sign(ev) & sign(val) == sgn;
 		if any(idx)
 			Ne = sum(idx);
 			ie(m:m+Ne) = find(idx);
