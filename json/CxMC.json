@@ -1,4 +1,5 @@
 {
 	"std": 0.05,
-	"samples": 10
+	"samples": 10,
+	"stepevery": 2
 }

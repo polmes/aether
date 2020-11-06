@@ -1,4 +1,4 @@
-function QoI = getQoI(t, S, ie, sc, pl)
+function [QoI, Qv] = getQoI(t, S, ie, sc, pl, every)
 	% Constants
 	%    Uinf [m/s], f
 	f = [0         , 0    ;
@@ -76,6 +76,7 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	latf = interp2deploy(alt, lat, sc);
 	lonf = interp2deploy(alt, lon, sc);
 	ran = pl.greatcircle(rad(1), lat(1), lon(1), interp2deploy(alt, rad, sc), latf, lonf);
+	fullran = pl.greatcircle(rad(1), lat(1), lon(1), rad, lat, lon);
 
 	% Final velocity (relative)
 	Uend = interp2deploy(alt, Uinf, sc);
@@ -105,7 +106,14 @@ function QoI = getQoI(t, S, ie, sc, pl)
 	% Integrated heat
 	q = trapz(t, dq);
 
+	% Scalar Quantities of Interest
 	QoI = [st, dur, ran, Uend, latf, lonf, maxU, maxG, maxQ, maxdq, q];
+
+	% Vector Quantities of Interest
+	if nargin < 6
+		every = 1;
+	end
+	Qv = [t(1:every:end), fullran(1:every:end), alt(1:every:end), Umag(1:every:end)];
 
 	function yq = interp2deploy(alt, q, sc)
 		[xx, idx] = unique(alt);

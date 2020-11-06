@@ -5,6 +5,7 @@ function CxMC(varargin)
 	% Analysis variables
 	stdv = opts.std;
 	NS = opts.samples;
+	every = opts.stepevery;
 
 	% Random inputs
 	inputs = [uq.RandomGaussian(1, stdv, true) , ... % for CL
@@ -44,7 +45,7 @@ function CxMC(varargin)
 		NWp = floor(NS / NP);
 
 		% Iterate
-		U = cell(NW, 3);
+		U = cell(NW, 1);
 		Q = zeros(NW, 11);
 		for i = 1:NW
 			k = (j - 1) * NWp + i;
@@ -55,15 +56,12 @@ function CxMC(varargin)
 
 			% Trajectory simulation
 			[t, S, ie] = en.integrate(S0, scs, pl);
-			U{i,1} = t;
-			U{i,2} = S;
-			U{i,3} = ie;
 
 			% Quantities of interest
 			if isempty(ie)
 				ie = 0;
 			end
-			Q(i,:) = util.getQoI(t, S, ie, scs, pl);
+			[Q(i,:), U{i}] = util.getQoI(t, S, ie, scs, pl, every);
 		end
 
 		% Combine Composite variables
