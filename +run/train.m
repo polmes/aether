@@ -40,11 +40,7 @@ function [agent, stats] = train(varargin)
 			opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', 1);
 			% opts = rlRepresentationOptions('LearnRate', 1e-3, 'GradientThreshold', 1);
 			% opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', inf);
-			if exist('rlQValueRepresentation', 'file') == 2
-				critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
-			else
-				critic = rlRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'output'}, opts);
-			end
+			critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
 			DQN = rlDQNAgentOptions('UseDoubleDQN', false, 'DiscountFactor', 0.99, ...
 				'TargetSmoothFactor', 1, 'TargetUpdateFrequency', 1, ...
 				'ExperienceBufferLength', 1e5, 'MiniBatchSize', 256, ...
