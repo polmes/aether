@@ -36,7 +36,11 @@ function [agent, stats] = train(varargin)
 			opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', 1);
 			% opts = rlRepresentationOptions('LearnRate', 1e-3, 'GradientThreshold', 1);
 			% opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', inf);
-			critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+			if exist('rlQValueRepresentation', 'file') == 2
+				critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+			else
+				critic = rlRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+			end
 			DQN = rlDQNAgentOptions('UseDoubleDQN', false, 'DiscountFactor', 0.99, ...
 				'TargetSmoothFactor', 1, 'TargetUpdateFrequency', 1, ...
 				'ExperienceBufferLength', 1e5, 'MiniBatchSize', 256, ...
@@ -60,7 +64,11 @@ function [agent, stats] = train(varargin)
 			DNN = connectLayers(DNN, 'CriticStateFC2', 'add/in1');
 			DNN = connectLayers(DNN, 'CriticActionFC1', 'add/in2');
 			opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', inf);
-			critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'action'}, opts);
+			if exist('rlQValueRepresentation', 'file') == 2
+				critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'action'}, opts);
+			else
+				critic = rlRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'action'}, opts);
+			end
 			DQN = rlDQNAgentOptions('UseDoubleDQN', true, 'DiscountFactor', 0.99, ...
 				'TargetSmoothFactor', 1, 'TargetUpdateFrequency', 1, ...
 				'ExperienceBufferLength', 1e5, 'MiniBatchSize', 256);
