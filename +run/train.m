@@ -22,7 +22,11 @@ function [agent, stats] = train(varargin)
 			      softmaxLayer('Name', 'actionProb')                                                        ];
 			opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', 1);
 			% opts = rlRepresentationOptions('LearnRate', 1e-2, 'GradientThreshold', inf);
-			actor = rlStochasticActorRepresentation(NN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+			if exist('rlStochasticActorRepresentation', 'file') == 2
+				actor = rlStochasticActorRepresentation(NN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+			else
+				actor = rlRepresentation(NN, en.getObservationInfo, 'Observation', {'state'}, opts);
+			end
 			% PG = rlPGAgentOptions('UseBaseline', false, 'EntropyLossWeight', 0.5);
 			agent = rlPGAgent(actor);
 		case {'DQN', 'multiDQN'}
@@ -39,7 +43,7 @@ function [agent, stats] = train(varargin)
 			if exist('rlQValueRepresentation', 'file') == 2
 				critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
 			else
-				critic = rlRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
+				critic = rlRepresentation(DNN, en.getObservationInfo, 'Observation', {'state'}, opts);
 			end
 			DQN = rlDQNAgentOptions('UseDoubleDQN', false, 'DiscountFactor', 0.99, ...
 				'TargetSmoothFactor', 1, 'TargetUpdateFrequency', 1, ...
