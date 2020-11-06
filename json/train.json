@@ -1,0 +1,8 @@
+{
+	"type": "DQN",
+	"targetreward": 10000,
+	"maxepisodes": 5000,
+	"averageover": 20,
+	"verbose": true,
+	"visualize": true
+}

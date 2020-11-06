@@ -55,20 +55,34 @@ function [sc, pl, en, S0, opts] = pre(casefile, analysisfile)
 		if isfile(fullfile('json/', [fn '.json']))
 			opts = json2struct(fn);
 			backup = opts;
+			hasdefault = true;
+		else
+			hasdefault = false;
+			if ~hasanalysis
+				util.exception('No analysis data available');
+			end
 		end
 
 		% Override analysis defaults if provided
 		if hasanalysis
 			try
 				analysisdata = json2struct(analysisfile);
-				fields = fieldnames(opts);
-				matches = isfield(analysisdata, fields);
-				for i = find(matches).'
-					opts.(fields{i}) = analysisdata.(fields{i});
+				if hasdefault
+					fields = fieldnames(opts);
+					matches = isfield(analysisdata, fields);
+					for i = find(matches).'
+						opts.(fields{i}) = analysisdata.(fields{i});
+					end
+				else
+					opts = analysisdata;
 				end
 			catch
-				warning('Error loading analysis data. Reverting back to defaults...');
-				opts = backup;
+				if hasdefault
+					warning('Error loading analysis data. Reverting back to defaults...');
+					opts = backup;
+				else
+					util.exception('Error loading analysis data');
+				end
 			end
 		end
 	end

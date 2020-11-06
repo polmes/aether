@@ -6,53 +6,85 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 		S;
 		S0;
 		ev;
+		ref;
 
 		% New state scalars
-		% n;
 		t;
 		t0;
+		acc;
+		Umag;
+		prevU;
+
+		% Initial conditions
+		maxU;
 		rad0;
 		lat0;
 		lon0;
-		maxU;
+
+		% Flags
 		done;
+		integrating;
 
 		% New objects
 		pl;
 		sc;
 		odefun;
+
+		% Reinforcement Learning
+		penalty;
+
+		% For simulation only
+		n;
+		ts;
+		Ss;
+		policy;
 	end
 
 	properties (Access = protected, Constant)
-		steprew =  0;
-		penalty = -1000;
+		% Reinforcement Learning
+		steprew = 0;
+
+		% Others
+		g0 = 9.80665; % standard gravity [m/s^2]
+		maxG = 50; % stop integration if g's exceeded
+		overU = 1.1; % percentage above maxU at which to stop integration
+
+		% For simulation only
+		datadir = 'constants/';
 	end
 
 	methods
 		% Contructor method creates an instance of the environment
-		% Change class name and constructor name accordingly
 		function self = EngineRL()
 			% Initialize Observation settings
-			ObservationInfo = rlNumericSpec([2 1]);
+			ObservationInfo = rlNumericSpec([3 1]);
 			ObservationInfo.Name = 'RL States';
-			ObservationInfo.Description = 'alt, decel';
+			ObservationInfo.Description = 'alt, acc, Umag';
 
 			% Initialize Action settings
 			ActionInfo = rlFiniteSetSpec([1 0]);
 			ActionInfo.Name = 'RL Actions';
+			ActionInfo.Description = 'Roll: yes, no';
 
 			% Call superclass method
 			self@rl.env.MATLABEnvironment(ObservationInfo, ActionInfo);
+
+			% Set global properties
+			self.integrating = false;
 		end
 
-		function initial(self, S0, sc, pl)
+		function initial(self, S0, sc, pl, targetreward)
 			% Define properties for all episodes
 			self.sc = sc;
 			self.pl = pl;
 			self.S0 = self.prepare(S0, self.pl);
+			self.ref = [self.pl.atm.lim; self.maxG * self.g0; sqrt(self.pl.mu / (self.pl.R + self.pl.atm.lim))];
 
 			% Maximum velocity allowed
-			self.maxU = 1.1 * norm(self.S0(8:10));
+			self.maxU = self.overU * norm(self.S0(8:10));
+
+			% Rewards
+			self.penalty = -targetreward;
 
 			% ODE solver
 			self.odefun = @(t, S) self.motion(t, S, self.sc, self.pl);
@@ -62,32 +94,75 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			[self.lat0, self.lon0, ~, self.rad0] = self.pl.xyz2lla(self.S0(1), self.S0(2), self.S0(3), 0);
 		end
 
+		function options(self, varargin)
+			% 'RelTol', 'AbsTol', 'Integrator' key-value argument pairs
+			p = inputParser;
+			p.KeepUnmatched = true;
+			if ~self.init
+				p.addParameter('TimeStep', 0.001);
+				p.addParameter('MaxTime', 2000);
+				p.addParameter('Policy', 'trained_upto8000');
+				self.init = true;
+			else
+				p.addParameter('TimeStep', self.opts.TimeStep);
+				p.addParameter('MaxTime', self.T);
+				p.addParameter('Policy', self.opts.Agent);
+			end
+			p.parse(varargin{:});
+
+			% Standard
+			self.opts.TimeStep = p.Results.TimeStep;
+			self.T = p.Results.MaxTime;
+
+			% Reinforcement Learning
+			self.opts.Agent = p.Results.Policy;
+			try
+				self.policy = util.open(self.opts.Agent, 'DataDir', self.datadir);
+			catch
+				warning('Failed to load provided policy. It is only required for simulation, ignore if training.')
+			end
+		end
+
 		function Nmax = maxsteps(self)
 			Nmax = ceil(self.T / self.opts.TimeStep);
 		end
 
-		% Apply system dynamics and simulates the environment with the
-		% given action for one step.
+		% Reset environment to initial state and output initial observation
+		function observation = reset(self)
+			% Call existing reset method to "zero" properties
+			self.initreset();
+
+			% Initial conditions
+			self.t = 0;
+			self.S = self.S0.';
+
+			% For acceleration
+			self.prevU = norm(self.S0(8:10));
+
+			% Call ODE once to start
+			self.ev = self.RK4();
+
+			% Initial observation from state
+			observation = [self.alt; self.acc; self.Umag] ./ self.ref;
+		end
+
+		% Simulates the environment with the given action for one step.
 		function [observation, reward, done, logs] = step(self, action)
 			% Always start by calling ODE (at least once)
 			[val, ter, sgn] = self.RK4();
 
+			% Return observation from current state
+			observation = [self.alt; self.acc; self.Umag] ./ self.ref;
+
 			% Check whether we need to roll or not
 			% if action == 0
 			if action == 1
-				% Roll and integrate until maneuver is completed
+				% Initiate roll...
 				self.initroll();
 				self.t0 = self.t;
-				goal = self.count + 1;
-				while self.count < goal
-					[val, ter, sgn] = self.RK4();
-				end
-			elseif action ~= 0
-				util.exception('Unexpected action value');
-			end
+				disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, u = ' num2str(self.Umag/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
 
-			% If we have completed roll, integrate to the end
-			if self.count == 3
+				% ... and integrate to the end
 				done = false;
 				while ~done
 					[val, ter, sgn] = self.RK4();
@@ -100,9 +175,6 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 				end
 			end
 
-			% Return observation from current state
-			observation = [self.alt; norm(self.dU)];
-
 			% Exceeded allowed time?
 			done = self.t > self.T;
 			if done
@@ -113,7 +185,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			idx = sign(val) ~= sign(self.ev) & sign(val) == sgn;
 			if any(ter(idx))
 				ie = find(idx);
-				% disp(['Terminal: ' num2str(ie)]);
+				disp(['Terminal event: ' num2str(ie)]);
 				if ie == 1
 					% Reached deploy altitude
 					ran = self.pl.greatcircle(self.rad0, self.lat0, self.lon0, self.rad, self.lat, self.lon);
@@ -130,28 +202,37 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			end
 
 			% Update counters
-			% self.n = self.n + 1;
 			self.ev = val;
 
 			% For compatibility
 			logs = [];
 		end
 
-		% Reset environment to initial state and output initial observation
-		function observation = reset(self)
-			% Call existing reset method to "zero" properties
+		function [t, S, ie] = integrate(self, S, sc, pl)
+			% Reset variables for next integration
 			self.initreset();
 
 			% Initial conditions
-			% self.n = 1;
-			self.t = 0;
-			self.S = self.S0.';
+			self.initial(S, sc, pl, 1000); % default penalty to -1000 (must be numeric)
 
-			% Call ODE once to start
-			self.ev = self.RK4();
+			% Initialize arrays
+			self.n = 0;
+			self.ts = zeros(self.maxsteps, 1);
+			self.Ss = zeros(self.maxsteps, self.NS);
+			self.integrating = true;
 
-			% Initial observation from state
-			observation = [self.alt; norm(self.dU)];
+			% Run simulation
+			simulation = rlSimulationOptions('MaxSteps', self.maxsteps);
+			exp = self.sim(self.policy, simulation);
+
+			% Outputs
+			t = self.ts(1:self.n);
+			S = self.Ss(1:self.n,:);
+			if exp.Reward.Data(end) == self.penalty
+				ie = 2; % (not 1)
+			else
+				ie = 1;
+			end
 		end
 	end
 
@@ -179,16 +260,31 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			% Call super-superclass method
 			[val, ter, sgn] = event@EngineAero(self, t, sc, pl);
 
-			% Append velocity-based event
-			val = [val; norm(self.dU)/9.80665 - 20; any(isnan(self.S))];
-			ter = [ter; true; true];
-			sgn = [sgn; +1; +1];
+			% Keep track of acceleration magnitude = rate of velocity magnitude
+			self.Umag = norm(self.U);
+			self.acc = (self.Umag - self.prevU) / self.opts.TimeStep;
+			self.prevU = self.Umag;
 
-			% Only keep stop / rate limiting conditions
-			if self.bank && self.PRA == self.target && (max(abs(self.MRP)) < self.tolMRP || t - self.t0 - self.offtime > pi/sc.maxW)
+			% Append velocity-based events
+			val = [val; abs(self.acc/self.g0) - self.maxG; self.Umag - self.maxU; any(isnan(self.S))];
+			ter = [ter; true; true; true];
+			sgn = [sgn; +1; +1; +1];
+
+			% Guidance commands
+			if self.count == 2 && (t - self.t0) >= sc.tref(1)
+				self.initroll();
+				self.t0 = t;
+			elseif self.bank && self.PRA == self.target && (max(abs(self.MRP)) < self.tolMRP || t - self.t0 - self.offtime > pi/sc.maxW)
 				self.stoproll();
 			elseif self.bank && (t - self.t0) > 0
 				self.rateroll(sc.maxW * (t - self.t0));
+			end
+
+			% For simulation only
+			if self.integrating
+				self.n = self.n + 1;
+				self.ts(self.n) = self.t;
+				self.Ss(self.n,:) = self.S;
 			end
 		end
 
@@ -196,10 +292,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			% Call superclass method
 			initreset@EngineGuidRate(self);
 
-			% New state vector
-			self.S = zeros(13, 1);
-
-			% New state scalar
+			% State scalars that must be reset each time
 			self.t0 = 0;
 			self.done = false;
 		end

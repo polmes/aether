@@ -36,6 +36,7 @@ classdef Engine < handle
 		function options(self, varargin)
 			% 'RelTol', 'AbsTol', 'Integrator' key-value argument pairs
 			p = inputParser;
+			p.KeepUnmatched = true;
 			if ~self.init
 				p.addParameter('RelTol', 1e-12);
 				p.addParameter('AbsTol', 1e-13);

@@ -11,7 +11,8 @@ classdef EngineFactory < Factory
 			'GuidRate', @EngineGuidRate, 'GuidanceRate', @EngineGuidRate, ...
 			'GuidAlt', @EngineGuidAlt, 'GuidanceAltitude', @EngineGuidAlt, ...
 			'GuidAltPoly', @EngineGuidAltPoly, 'GuidanceAltitudePolynomial', @EngineGuidAltPoly, ...
-			'RL', @EngineRL, 'ReinforcementLearning', @EngineRL
+			'RL', @EngineRL, 'ReinforcementLearning', @EngineRL, ...
+			'RLFree', @EngineRLFree, 'ReinforcementLearningFree', @EngineRLFree
 		};
 		exception = 'Unkown engine type provided';
 	end
@@ -29,7 +30,7 @@ classdef EngineFactory < Factory
 			en = self.constructor(data.engine);
 
 			% Basic options
-			en.options('RelTol', data.reltol, 'AbsTol', data.abstol, 'TimeStep', data.timestep, 'MaxTime', data.maxtime, 'ShowWarnings', data.verbose);
+			en.options('RelTol', data.reltol, 'AbsTol', data.abstol, 'TimeStep', data.timestep, 'MaxTime', data.maxtime, 'ShowWarnings', data.verbose, 'Policy', data.policy);
 
 			% Check if integrator is a valid function
 			integrator = str2func(data.solver);

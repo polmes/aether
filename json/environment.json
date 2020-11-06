@@ -1,0 +1,8 @@
+{
+	"integration": {
+		"engine": "ReinforcementLearning",
+		"solver": "RK4",
+		"timestep": 0.25,
+		"maxtime": 4000
+	}
+}
