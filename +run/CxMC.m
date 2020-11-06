@@ -76,6 +76,6 @@ function CxMC(varargin)
 	pl = pl{1};
 
 	% Save
-	filename = [mfilename '-' char(join(varargin, '-'))];
+	filename = util.constructname(mfilename, varargin);
 	util.store(filename, inputs, NS, Y, U, Q, sc, pl);
 end
