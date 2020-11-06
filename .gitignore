@@ -12,3 +12,4 @@ fig
 # Input files
 *_inputs.m
 json/*_*.json
+json/*-*.json
