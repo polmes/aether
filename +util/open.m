@@ -23,4 +23,9 @@ function data = open(filename, varargin)
 	% Load data
 	filepath = fullfile(filedir, [name ext]);
 	data = load(filepath);
+
+	% If there's only one field, return it directly
+	if numel(fieldnames(data)) == 1
+		data = struct2array(data);
+	end
 end

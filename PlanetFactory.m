@@ -32,7 +32,7 @@ classdef PlanetFactory < Factory
 				%   "body": "Earth" or "Mars" or ...
 				try
 					known = util.open('solarsystem', 'DataDir', self.datadir);
-					body = known.table(upper(data.body),:);
+					body = known(upper(data.body),:);
 					argdata.R = body.radius;
 					argdata.M = body.mass;
 					argdata.T = body.period;
