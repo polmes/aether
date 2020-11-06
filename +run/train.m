@@ -25,7 +25,7 @@ function [agent, stats] = train(varargin)
 			if exist('rlStochasticActorRepresentation', 'file') == 2
 				actor = rlStochasticActorRepresentation(NN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
 			else
-				actor = rlRepresentation(NN, en.getObservationInfo, 'Observation', {'state'}, opts);
+				actor = rlRepresentation(NN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'actionProb'}, opts);
 			end
 			% PG = rlPGAgentOptions('UseBaseline', false, 'EntropyLossWeight', 0.5);
 			agent = rlPGAgent(actor);
@@ -43,7 +43,7 @@ function [agent, stats] = train(varargin)
 			if exist('rlQValueRepresentation', 'file') == 2
 				critic = rlQValueRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, opts);
 			else
-				critic = rlRepresentation(DNN, en.getObservationInfo, 'Observation', {'state'}, opts);
+				critic = rlRepresentation(DNN, en.getObservationInfo, en.getActionInfo, 'Observation', {'state'}, 'Action', {'output'}, opts);
 			end
 			DQN = rlDQNAgentOptions('UseDoubleDQN', false, 'DiscountFactor', 0.99, ...
 				'TargetSmoothFactor', 1, 'TargetUpdateFrequency', 1, ...
