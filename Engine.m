@@ -81,7 +81,7 @@ classdef Engine < handle
 			self.opts.Events = @(t, S) self.event(t, sc, pl);
 			[t, S, te, Se, ie] = self.integrator(@(t, S) self.motion(t, S, sc, pl), [0, self.T], S0, self.opts);
 
-			if t(end) < self.T && ~isempty(ie) && self.showwarnings
+			if t(end) < self.T - self.opts.TimeStep(end) && ~isempty(ie) && self.showwarnings
 				warning(self.eventmssgs{ie(end)});
 			end
 		end
