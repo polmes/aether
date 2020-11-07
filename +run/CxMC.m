@@ -19,9 +19,13 @@ function CxMC(varargin)
 	% Y = uq.LHS(inputs, NS);
 	Y = uq.MC(inputs, NS);
 
-	% Init parallel pool
+	% Init parallel pool with unique job storage location
 	if isempty(gcp('nocreate'))
-		parpool(NP);
+		storage = fullfile(tempdir, char(java.util.UUID.randomUUID));
+		mkdir(storage);
+		pc = parcluster;
+		pc.JobStorageLocation = storage;
+		parpool(pc, NP);
 	end
 
 	% Parallelization
