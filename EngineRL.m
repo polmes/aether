@@ -13,7 +13,9 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 		t0;
 		acc;
 		Umag;
+		rate;
 		prevU;
+		prevH;
 
 		% Initial conditions
 		maxU;
@@ -78,10 +80,12 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			self.sc = sc;
 			self.pl = pl;
 			self.S0 = self.prepare(S0, self.pl);
-			self.ref = [self.pl.atm.lim; self.maxG * self.g0; sqrt(self.pl.mu / (self.pl.R + self.pl.atm.lim))];
 
 			% Maximum velocity allowed
 			self.maxU = self.overU * norm(self.S0(8:10));
+
+			% Reference state vector
+			self.ref = [self.pl.atm.lim; self.maxU; self.maxG * self.g0];
 
 			% Rewards
 			self.penalty = -targetreward;
@@ -136,14 +140,15 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			self.t = 0;
 			self.S = self.S0.';
 
-			% For acceleration
+			% For rates
 			self.prevU = norm(self.S0(8:10));
+			self.prevH = self.pl.atm.lim;
 
 			% Call ODE once to start
 			self.ev = self.RK4();
 
 			% Initial observation from state
-			observation = [self.alt; self.acc; self.Umag] ./ self.ref;
+			observation = [self.alt; self.rate; self.acc] ./ self.ref;
 		end
 
 		% Simulates the environment with the given action for one step.
@@ -152,7 +157,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			[val, ter, sgn] = self.RK4();
 
 			% Return observation from current state
-			observation = [self.alt; self.acc; self.Umag] ./ self.ref;
+			observation = [self.alt; self.rate; self.acc] ./ self.ref;
 
 			% Check whether we need to roll or not
 			% if action == 0
@@ -160,7 +165,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 				% Initiate roll...
 				self.initroll();
 				self.t0 = self.t;
-				disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, u = ' num2str(self.Umag/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
+				disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, w = ' num2str(self.rate/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
 
 				% ... and integrate to the end
 				done = false;
@@ -259,6 +264,10 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 		function [val, ter, sgn] = event(self, t, sc, pl)
 			% Call super-superclass method
 			[val, ter, sgn] = event@EngineAero(self, t, sc, pl);
+
+			% Keep track of rate of descent
+			self.rate = (self.alt - self.prevH) / self.opts.TimeStep;
+			self.prevH = self.alt;
 
 			% Keep track of acceleration magnitude = rate of velocity magnitude
 			self.Umag = norm(self.U);
