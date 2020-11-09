@@ -48,7 +48,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 
 		% Others
 		g0 = 9.80665; % standard gravity [m/s^2]
-		maxG = 50; % stop integration if g's exceeded
+		maxG = 10; % stop integration if g's exceeded
 		overU = 1.1; % percentage above maxU at which to stop integration
 
 		% For simulation only
