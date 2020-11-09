@@ -1,5 +1,7 @@
 {
 	"type": "DQN",
+	"learnrate": 1e-3,
+	"neurons": 64,
 	"targetreward": 10000,
 	"maxepisodes": 5000,
 	"averageover": 20,
