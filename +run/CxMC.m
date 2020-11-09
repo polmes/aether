@@ -6,6 +6,8 @@ function CxMC(varargin)
 	stdv = opts.std;
 	NS = opts.samples;
 	every = opts.stepevery;
+	Ms = opts.mach;
+	Kns = opts.knudsen;
 
 	% Random inputs
 	inputs = [uq.RandomGaussian(1, stdv, true) , ... % for CL
@@ -34,7 +36,7 @@ function CxMC(varargin)
 		[sc, pl, en] = util.pre(varargin{:});
 
 		% Initialize stochastic objects
-		scs = SpacecraftStochastic(sc, inputs);
+		scs = SpacecraftStochastic(sc, inputs, Ms, Kns);
 
 		% Solver setup
 		en.options('ShowWarnings', false);
