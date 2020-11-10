@@ -97,7 +97,7 @@ function [QoI, Qv] = getQoI(t, S, ie, sc, pl, every)
 	% Radiative heat flux
 	a = 1.072e6 * Uinf.^(-1.88) .* rho.^(-0.325);
 	dqr = Cr * sc.R.^a .* rho.^(1.22) .* interp1(f(:,1), f(:,2), Uinf);
-	dqr(a > 1) = 0; % out-otf-range
+	dqr(a > 1) = 0; % out-of-range
 
 	% Max heat flux
 	dq = dqc + dqr;
