@@ -20,7 +20,7 @@ function postCxMC(varargin)
 		data = util.open(files(i).name);
 		Qc{i} = data.Q;
 		Uc{i} = data.U;
-		% pl = data.pl;
+		sc = data.sc;
 	end
 	Q = cell2mat(Qc);
 	U = cat(1, Uc{:});
@@ -44,7 +44,7 @@ function postCxMC(varargin)
 	Qgood(:,1) = Qgood(:,1) / 1e3; % range [m] to [km]
 	Qgood(:,3:4) = rad2deg(Qgood(:,3:4)); % lat, lon [rad] to [deg]
 	Qgood(:,6) = Qgood(:,6) / 1e4; % max heating [W/m^2] to [W/cm^2]
-	Ugood = cellfun(@(x) x(:,2:4) / 1e3, U(good), 'UniformOutput', false); % [m, m/s] to [km, km/s]
+	Ugood = cellfun(@(x) [x(:,1) x(:,2:3)/1e3], U(good), 'UniformOutput', false); % [m] to [km]
 	clear('Q', 'U');
 
 	% Statistics
@@ -83,24 +83,31 @@ function postCxMC(varargin)
 	disp(['Variance heating  error = ' num2str(Qverr(6), '%.2e')]);
 
 	% Find closest trajectories to 3-sigma min/max + mean range
-	[~, in]  =  min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qstdv(1))));
-	[~, im]  =  min(abs(Qgood(:,1) - Qmean(NT,1)));
-	[~, ix]  =  min(abs(Qgood(:,1) - (Qmean(NT,1) + 3*Qstdv(1))));
+	[~, in] = min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qstdv(1))));
+	[~, im] = min(abs(Qgood(:,1) - Qmean(NT,1)));
+	[~, ix] = min(abs(Qgood(:,1) - (Qmean(NT,1) + 3*Qstdv(1))));
+
+	% Lift-down period
+	iini = find(diff(Ugood{im}(:,3)) > 0, 1);
+	[~, iend] = min(abs(Ugood{im}(:,1) - (Ugood{im}(iini,1) + sc.tref(1))));
 
 	%% POST
 
 	% Altitude vs. range
 	figure;
 	hold('on');
-	plot(Ugood{im}(:,1), Ugood{im}(:,2));
-	fill([Ugood{in}(:,1); flipud(Ugood{ix}(:,1))], [Ugood{in}(:,2); flipud(Ugood{ix}(:,2))], ...
+	plot(Ugood{im}(:,2), Ugood{im}(:,3));
+	fill([Ugood{in}(:,2); flipud(Ugood{ix}(:,2))], [Ugood{in}(:,3); flipud(Ugood{ix}(:,3))], ...
 		[0.85 0.90 0.95], 'EdgeColor', 'none');
+	set(gca, 'Children', flipud(get(gca, 'Children'))); % line plot on top
+	plot(Ugood{im}(iini:iend,2), Ugood{im}(iini:iend,3), ...
+		'Color', [0.850 0.325 0.098], 'Marker', '.', 'MarkerSize', 5);
 	xlim([0, inf]);
 	ylim([-inf, +inf]);
 	xlabel('Range [km]');
 	ylabel('Altitude [km]');
-	set(gca, 'Children', flipud(get(gca, 'Children')));
-	legend(get(gca, 'Children'), {'Mean range trajectory', '3-$\sigma$ range boundaries'});
+	legend(cat(1, flipud(findobj(gca, 'Type', 'Line')), findobj(gca, 'Type', 'Patch')), ...
+		{'Mean range trajectory', 'Lift-down period', '3-$\sigma$ range boundaries'});
 	set(gcf, 'Renderer', 'painters'); % force vector render when using 'fill'
 
 	% Scatter range-velocity
