@@ -94,12 +94,14 @@ function postCxMC(varargin)
 	hold('on');
 	plot(Ugood{im}(:,1), Ugood{im}(:,2));
 	fill([Ugood{in}(:,1); flipud(Ugood{ix}(:,1))], [Ugood{in}(:,2); flipud(Ugood{ix}(:,2))], ...
-		lines(1), 'FaceAlpha', 0.15, 'EdgeColor', 'none');
+		[0.85 0.90 0.95], 'EdgeColor', 'none');
 	xlim([0, inf]);
 	ylim([-inf, +inf]);
 	xlabel('Range [km]');
 	ylabel('Altitude [km]');
-	legend('Mean range trajectory', '3-$\sigma$ range boundaries');
+	set(gca, 'Children', flipud(get(gca, 'Children')));
+	legend(get(gca, 'Children'), {'Mean range trajectory', '3-$\sigma$ range boundaries'});
+	set(gcf, 'Renderer', 'painters'); % force vector render when using 'fill'
 
 	% Scatter range-velocity
 	figure;
