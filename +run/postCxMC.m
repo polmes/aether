@@ -29,7 +29,7 @@ function postCxMC(varargin)
 	%% PRE
 
 	% QoI
-	% [st, dur, pos, Uend, maxU, maxG, maxQ, q]
+	% [st, dur, ran, Uend, latf, lonf, maxU, maxG, maxQ, maxdq, q]
 	good = find(Q(:,1) == 1);
 	NS = size(Q, 1);
 	NG = numel(good);
@@ -39,11 +39,12 @@ function postCxMC(varargin)
 	disp(['Good trajectories: ' num2str(NG/NS * 100) '%']);
 
 	% QoI of interest
-	% [ran, Uend, latf, lonf, maxG, maxdq]
-	Qgood = Q(good, [3 4 5 6 8 10]);
+	% [ran, Uend, latf, lonf, maxG, maxdq, dur, q]
+	Qgood = Q(good, [3 4 5 6 8 10 2 11]);
 	Qgood(:,1) = Qgood(:,1) / 1e3; % range [m] to [km]
 	Qgood(:,3:4) = rad2deg(Qgood(:,3:4)); % lat, lon [rad] to [deg]
 	Qgood(:,6) = Qgood(:,6) / 1e4; % max heating [W/m^2] to [W/cm^2]
+	Qgood(:,8) = Qgood(:,8) / 1e7; % integrated heat [J/m^2] to [kJ/cm^2]
 	Ugood = cellfun(@(x) [x(:,1) x(:,2:3)/1e3], U(good), 'UniformOutput', false); % [m] to [km]
 	clear('Q', 'U');
 
@@ -59,28 +60,36 @@ function postCxMC(varargin)
 	% Standard deviations
 	Qstdv = sqrt(Qvari(NT,:));
 	Qperc = Qstdv ./ Qmean(NT,:) * 100;
-	disp(['StdDev Range       = ' num2str(Qstdv(1), '%.2f') ' km     = ' num2str(Qperc(1), '%.2f') '%']);
-	disp(['StdDev Velocity    = ' num2str(Qstdv(2), '%.2f') ' m/s    = ' num2str(Qperc(2), '%.2f') '%']);
-	disp(['StdDev Max Loading = ' num2str(Qstdv(5), '%.2f') ' g0     = ' num2str(Qperc(5), '%.2f') '%']);
-	disp(['StdDev Max Heating = ' num2str(Qstdv(6), '%.2f') ' W/cm^2 = ' num2str(Qperc(6), '%.2f') '%']);
+	disp(['StdDev Range       = ' num2str(Qstdv(1), '%.2f') ' km      = ' num2str(Qperc(1), '%.2f') '%']);
+	disp(['StdDev Velocity    = ' num2str(Qstdv(2), '%.2f') ' m/s     = ' num2str(Qperc(2), '%.2f') '%']);
+	disp(['StdDev Max Loading = ' num2str(Qstdv(5), '%.2f') ' g0      = ' num2str(Qperc(5), '%.2f') '%']);
+	disp(['StdDev Max Heating = ' num2str(Qstdv(6), '%.2f') ' W/cm^2  = ' num2str(Qperc(6), '%.2f') '%']);
+	disp(['StdDev Duration    = ' num2str(Qstdv(7), '%.2f') ' s       = ' num2str(Qperc(7), '%.2f') '%']);
+	disp(['StdDev Total Heat  = ' num2str(Qstdv(8), '%.2f') ' kJ/cm^2 = ' num2str(Qperc(8), '%.2f') '%']);
 
-	% Covariance ellipses: Range-Velocity (RV) + Loading-Heating (LH)
+	% Covariance ellipses: Range-Velocity (RV) + Loading-Heating (LH) + Duration-Heat (DQ)
 	Crv = cov(Qgood(:,1:2)); % returns 2x2 "covariance matrix"
 	[ellxRV, ellyRV] = covellipse(Crv, Qmean(NT,1:2)); % with 3-sigma uncertainty
 	Clh = cov(Qgood(:,5:6)); % returns 2x2 "covariance matrix"
 	[ellxLH, ellyLH] = covellipse(Clh, Qmean(NT,5:6)); % with 3-sigma uncertainty
+	Cdq = cov(Qgood(:,7:8)); % returns 2x2 "covariance matrix"
+	[ellxDQ, ellyDQ] = covellipse(Cdq, Qmean(NT,7:8)); % with 3-sigma uncertainty
 
 	% Convergence error
 	Qmerr = (Qmean(NT-1,:) - Qmean(NT,:)) ./ Qmean(NT,:);
 	Qverr = (Qvari(NT-1,:) - Qvari(NT,:)) ./ Qvari(NT,:);
-	disp(['Mean     range    error = ' num2str(Qmerr(1), '%.2e')]);
-	disp(['Variance range    error = ' num2str(Qverr(1), '%.2e')]);
-	disp(['Mean     velocity error = ' num2str(Qmerr(2), '%.2e')]);
-	disp(['Variance velocity error = ' num2str(Qverr(2), '%.2e')]);
-	disp(['Mean     loading  error = ' num2str(Qmerr(5), '%.2e')]);
-	disp(['Variance loading  error = ' num2str(Qverr(5), '%.2e')]);
-	disp(['Mean     heating  error = ' num2str(Qmerr(6), '%.2e')]);
-	disp(['Variance heating  error = ' num2str(Qverr(6), '%.2e')]);
+	disp(['Mean     range     error = ' num2str(Qmerr(1), '%.2e')]);
+	disp(['Variance range     error = ' num2str(Qverr(1), '%.2e')]);
+	disp(['Mean     velocity  error = ' num2str(Qmerr(2), '%.2e')]);
+	disp(['Variance velocity  error = ' num2str(Qverr(2), '%.2e')]);
+	disp(['Mean     loading   error = ' num2str(Qmerr(5), '%.2e')]);
+	disp(['Variance loading   error = ' num2str(Qverr(5), '%.2e')]);
+	disp(['Mean     heating   error = ' num2str(Qmerr(6), '%.2e')]);
+	disp(['Variance heating   error = ' num2str(Qverr(6), '%.2e')]);
+	disp(['Mean     heat      error = ' num2str(Qmerr(7), '%.2e')]);
+	disp(['Variance heat      error = ' num2str(Qverr(7), '%.2e')]);
+	disp(['Mean     duration  error = ' num2str(Qmerr(8), '%.2e')]);
+	disp(['Variance duration  error = ' num2str(Qverr(8), '%.2e')]);
 
 	% Find closest trajectories to 3-sigma min/max + mean range
 	[~, in] = min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qstdv(1))));
@@ -107,7 +116,7 @@ function postCxMC(varargin)
 	xlabel('Range [km]');
 	ylabel('Altitude [km]');
 	legend(cat(1, flipud(findobj(gca, 'Type', 'Line')), findobj(gca, 'Type', 'Patch')), ...
-		{'Mean range trajectory', 'Lift-down period', '3-$\sigma$ range boundaries'});
+		{'Mean range trajectory', 'Lift-down period', '3$\sigma$ range boundaries'});
 	set(gcf, 'Renderer', 'painters'); % force vector render when using 'fill'
 
 	% Scatter range-velocity
@@ -118,6 +127,7 @@ function postCxMC(varargin)
 	grid('on');
 	xlabel('Range [km]');
 	ylabel('Deploy Velocity [m/s]');
+	legend(findobj(gca, 'Type', 'Line'), '3$\sigma$ covariance');
 
 	% Scatter loading-heating
 	figure;
@@ -127,6 +137,17 @@ function postCxMC(varargin)
 	grid('on');
 	xlabel('Maximum $g_0$ Loading');
 	ylabel('Maximum Heating Rate [W/cm$^2$]');
+	legend(findobj(gca, 'Type', 'Line'), '3$\sigma$ covariance');
+
+	% Scatter duration-heat
+	figure;
+	hold('on');
+	scatter(Qgood(:,7), Qgood(:,8), 5, 'filled');
+	plot(ellxDQ, ellyDQ);
+	grid('on');
+	xlabel('Flight Duration [s]');
+	ylabel('Integrated Heat Load [kJ/cm$^2$]');
+	legend(findobj(gca, 'Type', 'Line'), '3$\sigma$ covariance');
 
 	% Scatter landing location
 	figure;
@@ -191,6 +212,34 @@ function postCxMC(varargin)
 	set(gca, 'XScale', 'log');
 	xlim([0, inf]);
 
+	% Duration convergence
+	figure;
+	hold('on');
+	grid('on');
+	xlabel('Number of Samples');
+	yyaxis('left');
+	plot(n, Qmean(:,7), '^-', 'MarkerFaceColor', 'auto');
+	ylabel('Mean Duration [s]');
+	yyaxis('right');
+	plot(n, Qvari(:,7), 'v-', 'MarkerFaceColor', 'auto');
+	ylabel('Duration Variance');
+	set(gca, 'XScale', 'log');
+	xlim([0, inf]);
+
+	% Heat convergence
+	figure;
+	hold('on');
+	grid('on');
+	xlabel('Number of Samples');
+	yyaxis('left');
+	plot(n, Qmean(:,8), '^-', 'MarkerFaceColor', 'auto');
+	ylabel('Mean Integrated Heat Load [kJ/cm$^2$]');
+	yyaxis('right');
+	plot(n, Qvari(:,8), 'v-', 'MarkerFaceColor', 'auto');
+	ylabel('Integrated Heat Load Variance');
+	set(gca, 'XScale', 'log');
+	xlim([0, inf]);
+
 	% Set options
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
 	set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
@@ -202,7 +251,7 @@ function postCxMC(varargin)
 	%% FINAL
 
 	% Save figures
-	names = {'altran', 'scRV', 'scLH', 'scLL', 'convR', 'convV', 'convL', 'convH'};
+	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ'};
 	figcount = numel(names); % # of figures to save
 	totalfig = numel(findobj('type', 'figure'));
 	for i = 1:figcount
