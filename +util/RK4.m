@@ -4,10 +4,10 @@ function [t, S, te, Se, ie] = RK4(odefun, Ts, S0, opts)
 	if numel(dts) > 1
 		dts = reshape(dts, 2, []).';
 		dts(1,1) = dts(1,1) + eps;
-		NT = ceil(sum(diff([dts(:,1); Ts(2)]) ./ dts(:,2)));
+		NT = ceil(sum(diff([dts(:,1); Ts(2)]) ./ dts(:,2))) + 1;
 	else
 		dts = [eps dts];
-		NT = ceil(Ts(2) / dts(1,2));
+		NT = ceil(Ts(2) / dts(1,2)) + 1;
 	end
 
 	% Initialize arrays
