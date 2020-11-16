@@ -7,6 +7,7 @@ function postCx(varargin)
 	% Analysis variables
 	name = util.constructname(extractAfter(mfilename, 'post'), {opts.case, opts.analysis});
 	NT = opts.steps;
+	p = opts.polynomialorder;
 
 	% Load data
 	files = util.list(name);
@@ -14,17 +15,21 @@ function postCx(varargin)
 		error('No files match the provided case/name');
 	end
 	NF = numel(files);
+	Yc = cell(NF, 1);
 	Qc = cell(NF, 1);
 	Uc = cell(NF, 1);
 	for i = 1:NF
 		data = util.open(files(i).name);
+		Yc{i} = data.Y;
 		Qc{i} = data.Q;
 		Uc{i} = data.U;
 		sc = data.sc;
+		inputs = data.inputs;
 	end
+	Y = cell2mat(Yc);
 	Q = cell2mat(Qc);
 	U = cat(1, Uc{:});
-	clear('data', 'Qc', 'Uc');
+	clear('data', 'Yc', 'Qc', 'Uc');
 
 	%% PRE
 
@@ -40,13 +45,14 @@ function postCx(varargin)
 
 	% QoI of interest
 	% [ran, Uend, latf, lonf, maxG, maxdq, dur, q]
+	Ygood = Y(good,:);
 	Qgood = Q(good, [3 4 5 6 8 10 2 11]);
 	Qgood(:,1) = Qgood(:,1) / 1e3; % range [m] to [km]
 	Qgood(:,3:4) = rad2deg(Qgood(:,3:4)); % lat, lon [rad] to [deg]
 	Qgood(:,6) = Qgood(:,6) / 1e4; % max heating [W/m^2] to [W/cm^2]
 	Qgood(:,8) = Qgood(:,8) / 1e7; % integrated heat [J/m^2] to [kJ/cm^2]
 	Ugood = cellfun(@(x) [x(:,1) x(:,2:3)/1e3], U(good), 'UniformOutput', false); % [m] to [km]
-	clear('Q', 'U');
+	clear('Y', 'Q', 'U');
 
 	% Statistics
 	NQ = size(Qgood, 2);
@@ -107,6 +113,34 @@ function postCx(varargin)
 	% Lift-down period
 	iini = find(diff(Ugood{im}(:,3)) > 0, 1);
 	[~, iend] = min(abs(Ugood{im}(:,1) - (Ugood{im}(iini,1) + sc.tref(1))));
+
+	% Polynomial Chaos Expansion via least-squares regression
+	[C, ~, I] = uq.PCE(Ygood, Qgood, inputs, p);
+	QmeanPC = C(1,:);
+	QvariPC = sum(C(2:end,:).^2);
+	QmerrPC = abs((QmeanPC - Qmean(NT,:)) ./ Qmean(NT,:));
+	QverrPC = abs((Qvari - Qvari(NT,:)) ./ Qvari(NT,:));
+	disp(['PCE Mean     Range    Error = ' sprintf('%.2e', QmerrPC(1))]);
+	disp(['PCE Variance Range    Error = ' sprintf('%.2e', QverrPC(1))]);
+	disp(['PCE Mean     Velocity Error = ' sprintf('%.2e', QmerrPC(2))]);
+	disp(['PCE Variance Velocity Error = ' sprintf('%.2e', QverrPC(2))]);
+	disp(['PCE Mean     Loading  Error = ' sprintf('%.2e', QmerrPC(5))]);
+	disp(['PCE Variance Loading  Error = ' sprintf('%.2e', QverrPC(5))]);
+	disp(['PCE Mean     Heating  Error = ' sprintf('%.2e', QmerrPC(6))]);
+	disp(['PCE Variance Heating  Error = ' sprintf('%.2e', QverrPC(6))]);
+	disp(['PCE Mean     Heat     Error = ' sprintf('%.2e', QmerrPC(7))]);
+	disp(['PCE Variance Heat     Error = ' sprintf('%.2e', QverrPC(7))]);
+	disp(['PCE Mean     Duration Error = ' sprintf('%.2e', QmerrPC(8))]);
+	disp(['PCE Variance Duration Error = ' sprintf('%.2e', QverrPC(8))]);
+
+	% Total Sensitivity/Sobol' Index for each QoI
+	ND = size(I, 2); % = numel(in)
+	TSI = zeros(ND, NQ);
+	for k = 1:ND
+		TSI(k,:) = sum(C(I(:,k) > 0,:).^2) ./ QvariPC;
+	end
+	TSI = TSI ./ sum(TSI); % normalize to 1
+	labels = {'Range', 'Deploy Velocity', 'Max $g_0$ Loading', 'Max Heating Rate', 'Flight Duration', 'Total Heat Load'}; % QoI's [1 2 5 6 7 8]
 
 	%% POST
 
@@ -248,6 +282,13 @@ function postCx(varargin)
 	set(gca, 'XScale', 'log');
 	xlim([0, inf]);
 
+	% Total Sobol' Indices
+	figure;
+	bar(reordercats(categorical(labels), labels), TSI(:,[1 2 5 6 7 8]).');
+	grid('on');
+	legend('$C_L$', '$C_D$', '$C_m$');
+	ylabel("Total Sobol' Index");
+
 	% Set options
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
 	set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
@@ -259,8 +300,7 @@ function postCx(varargin)
 	%% FINAL
 
 	% Save figures
-	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ'};
-	figcount = numel(names); % # of figures to save
+	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ', 'TSI'};	figcount = numel(names); % # of figures to save
 	totalfig = numel(findobj('type', 'figure'));
 	for i = 1:figcount
 		util.render(figure(totalfig - figcount + i), [name '_' names{i}]);

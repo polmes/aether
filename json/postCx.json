@@ -1,5 +1,6 @@
 {
 	"case": "",
 	"analysis": "",
-	"steps": 5
+	"steps": 5,
+	"polynomialorder": 4
 }

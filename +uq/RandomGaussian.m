@@ -73,5 +73,28 @@ classdef RandomGaussian < uq.Random
 			% Avoid singularities
 			p([1, n+1]) = [-self.INF, +self.INF];
 		end
+
+		function x = normalize(self, x)
+			x = (x - self.mu) / self.sigma;
+		end
+
+		function H = basis(self, p, Y)
+			% Compute "probabilistic" Hermite polynomials up to order p
+			%   p   =   Maximum basis order [scalar]
+			%   Y   =   Sample random variables [Nx1]
+
+			% Normalize random variables s.t. Y ~ N(0,1)
+			Y = self.normalize(Y);
+
+			% Generate matrix Nxp of polynomial basis
+			H = zeros(numel(Y), p+3);
+			H(:,1) = 1;
+			H(:,2) = 0;
+			for n = 2:(p+2) % shifted s.t. order 0 -> index 3
+				% H(n+1) = x * H(n) - n * H(n-1)
+				H(:,n+1) = Y .* H(:,n) - (n-3) * H(:,n-1);
+			end
+			H(:,1:2) = [];
+		end
 	end
 end
