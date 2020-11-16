@@ -1,4 +1,4 @@
-function CxMC(varargin)
+function Cx(varargin)
 	% Global variables
 	[~, ~, ~, S0, opts] = util.pre(varargin{:});
 
@@ -18,8 +18,14 @@ function CxMC(varargin)
 	NP = feature('numcores');
 
 	% Generate samples
-	% Y = uq.LHS(inputs, NS);
-	Y = uq.MC(inputs, NS);
+	switch opts.sampling
+		case 'MC'
+			Y = uq.MC(inputs, NS);
+		case 'LHS'
+			Y = uq.LHS(inputs, NS);
+		otherwise
+			util.exception('Unknown stochastic sampling method provided');
+	end
 
 	% Init parallel pool with unique job storage location
 	if isempty(gcp('nocreate'))

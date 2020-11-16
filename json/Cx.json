@@ -1,4 +1,5 @@
 {
+	"sampling": "MC",
 	"std": 0.05,
 	"mach": [0, 100],
 	"knudsen": [1e-9, 1e9],

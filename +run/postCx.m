@@ -1,4 +1,4 @@
-function postCxMC(varargin)
+function postCx(varargin)
 	%% INPUT
 
 	% Handle different cases
@@ -57,15 +57,23 @@ function postCxMC(varargin)
 		Qvari(i,:) = mean((Qgood(1:n(i),:) - Qmean(i,:)).^2);
 	end
 
+	% Expectations
+	disp(['Mean Range       = ' sprintf('%8.2f', Qmean(NT,1)) ' km     ']);
+	disp(['Mean Velocity    = ' sprintf('%8.2f', Qmean(NT,2)) ' m/s    ']);
+	disp(['Mean Max Loading = ' sprintf('%8.2f', Qmean(NT,5)) ' g0     ']);
+	disp(['Mean Max Heating = ' sprintf('%8.2f', Qmean(NT,6)) ' W/cm^2 ']);
+	disp(['Mean Duration    = ' sprintf('%8.2f', Qmean(NT,7)) ' s      ']);
+	disp(['Mean Total Heat  = ' sprintf('%8.2f', Qmean(NT,8)) ' kJ/cm^2']);
+
 	% Standard deviations
 	Qstdv = sqrt(Qvari(NT,:));
 	Qperc = Qstdv ./ Qmean(NT,:) * 100;
-	disp(['StdDev Range       = ' num2str(Qstdv(1), '%.2f') ' km      = ' num2str(Qperc(1), '%.2f') '%']);
-	disp(['StdDev Velocity    = ' num2str(Qstdv(2), '%.2f') ' m/s     = ' num2str(Qperc(2), '%.2f') '%']);
-	disp(['StdDev Max Loading = ' num2str(Qstdv(5), '%.2f') ' g0      = ' num2str(Qperc(5), '%.2f') '%']);
-	disp(['StdDev Max Heating = ' num2str(Qstdv(6), '%.2f') ' W/cm^2  = ' num2str(Qperc(6), '%.2f') '%']);
-	disp(['StdDev Duration    = ' num2str(Qstdv(7), '%.2f') ' s       = ' num2str(Qperc(7), '%.2f') '%']);
-	disp(['StdDev Total Heat  = ' num2str(Qstdv(8), '%.2f') ' kJ/cm^2 = ' num2str(Qperc(8), '%.2f') '%']);
+	disp(['StdDev Range       = ' sprintf('%7.2f', Qstdv(1)) ' km      = ' sprintf('%5.2f', Qperc(1)) '%']);
+	disp(['StdDev Velocity    = ' sprintf('%7.2f', Qstdv(2)) ' m/s     = ' sprintf('%5.2f', Qperc(2)) '%']);
+	disp(['StdDev Max Loading = ' sprintf('%7.2f', Qstdv(5)) ' g0      = ' sprintf('%5.2f', Qperc(5)) '%']);
+	disp(['StdDev Max Heating = ' sprintf('%7.2f', Qstdv(6)) ' W/cm^2  = ' sprintf('%5.2f', Qperc(6)) '%']);
+	disp(['StdDev Duration    = ' sprintf('%7.2f', Qstdv(7)) ' s       = ' sprintf('%5.2f', Qperc(7)) '%']);
+	disp(['StdDev Total Heat  = ' sprintf('%7.2f', Qstdv(8)) ' kJ/cm^2 = ' sprintf('%5.2f', Qperc(8)) '%']);
 
 	% Covariance ellipses: Range-Velocity (RV) + Loading-Heating (LH) + Duration-Heat (DQ)
 	Crv = cov(Qgood(:,1:2)); % returns 2x2 "covariance matrix"
@@ -76,20 +84,20 @@ function postCxMC(varargin)
 	[ellxDQ, ellyDQ] = covellipse(Cdq, Qmean(NT,7:8)); % with 3-sigma uncertainty
 
 	% Convergence error
-	Qmerr = (Qmean(NT-1,:) - Qmean(NT,:)) ./ Qmean(NT,:);
-	Qverr = (Qvari(NT-1,:) - Qvari(NT,:)) ./ Qvari(NT,:);
-	disp(['Mean     range     error = ' num2str(Qmerr(1), '%.2e')]);
-	disp(['Variance range     error = ' num2str(Qverr(1), '%.2e')]);
-	disp(['Mean     velocity  error = ' num2str(Qmerr(2), '%.2e')]);
-	disp(['Variance velocity  error = ' num2str(Qverr(2), '%.2e')]);
-	disp(['Mean     loading   error = ' num2str(Qmerr(5), '%.2e')]);
-	disp(['Variance loading   error = ' num2str(Qverr(5), '%.2e')]);
-	disp(['Mean     heating   error = ' num2str(Qmerr(6), '%.2e')]);
-	disp(['Variance heating   error = ' num2str(Qverr(6), '%.2e')]);
-	disp(['Mean     heat      error = ' num2str(Qmerr(7), '%.2e')]);
-	disp(['Variance heat      error = ' num2str(Qverr(7), '%.2e')]);
-	disp(['Mean     duration  error = ' num2str(Qmerr(8), '%.2e')]);
-	disp(['Variance duration  error = ' num2str(Qverr(8), '%.2e')]);
+	Qmerr = abs((Qmean(NT-1,:) - Qmean(NT,:)) ./ Qmean(NT,:));
+	Qverr = abs((Qvari(NT-1,:) - Qvari(NT,:)) ./ Qvari(NT,:));
+	disp(['Mean     Range    Error = ' sprintf('%.2e', Qmerr(1))]);
+	disp(['Variance Range    Error = ' sprintf('%.2e', Qverr(1))]);
+	disp(['Mean     Velocity Error = ' sprintf('%.2e', Qmerr(2))]);
+	disp(['Variance Velocity Error = ' sprintf('%.2e', Qverr(2))]);
+	disp(['Mean     Loading  Error = ' sprintf('%.2e', Qmerr(5))]);
+	disp(['Variance Loading  Error = ' sprintf('%.2e', Qverr(5))]);
+	disp(['Mean     Heating  Error = ' sprintf('%.2e', Qmerr(6))]);
+	disp(['Variance Heating  Error = ' sprintf('%.2e', Qverr(6))]);
+	disp(['Mean     Heat     Error = ' sprintf('%.2e', Qmerr(7))]);
+	disp(['Variance Heat     Error = ' sprintf('%.2e', Qverr(7))]);
+	disp(['Mean     Duration Error = ' sprintf('%.2e', Qmerr(8))]);
+	disp(['Variance Duration Error = ' sprintf('%.2e', Qverr(8))]);
 
 	% Find closest trajectories to 3-sigma min/max + mean range
 	[~, in] = min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qstdv(1))));
