@@ -46,10 +46,8 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 		% Reinforcement Learning
 		steprew = 0;
 
-		% Others
-		g0 = 9.80665; % standard gravity [m/s^2]
-		maxG = 10; % stop integration if g's exceeded
-		overU = 1.1; % percentage above maxU at which to stop integration
+		% Percentage above maxU at which to stop integration (just in case)
+		overU = 1.1;
 
 		% For simulation only
 		datadir = 'constants/';
@@ -85,7 +83,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			self.maxU = self.overU * norm(self.S0(8:10));
 
 			% Reference state vector
-			self.ref = [self.pl.atm.lim; self.maxU; self.maxG * self.g0];
+			self.ref = [self.pl.atm.lim; self.maxU; self.gmax * self.g0];
 
 			% Rewards
 			self.penalty = -targetreward;
@@ -105,11 +103,13 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			if ~self.init
 				p.addParameter('TimeStep', 0.001);
 				p.addParameter('MaxTime', 2000);
+				p.addParameter('MaxLoad', 40);
 				p.addParameter('Policy', 'trained_upto8000');
 				self.init = true;
 			else
 				p.addParameter('TimeStep', self.opts.TimeStep);
 				p.addParameter('MaxTime', self.T);
+				p.addParameter('MaxLoad', self.gmax);
 				p.addParameter('Policy', self.opts.Agent);
 			end
 			p.parse(varargin{:});
@@ -117,6 +117,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			% Standard
 			self.opts.TimeStep = p.Results.TimeStep;
 			self.T = p.Results.MaxTime;
+			self.gmax = p.Results.MaxLoad;
 
 			% Reinforcement Learning
 			self.opts.Agent = p.Results.Policy;
@@ -189,7 +190,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			% Check for terminal condition + determine reward
 			idx = sign(val) ~= sign(self.ev) & sign(val) == sgn;
 			if any(ter(idx))
-				ie = find(idx);
+				ie = find(idx, 1);
 				disp(['Terminal event: ' num2str(ie)]);
 				if ie == 1
 					% Reached deploy altitude
@@ -275,7 +276,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			self.prevU = self.Umag;
 
 			% Append velocity-based events
-			val = [val; abs(self.acc/self.g0) - self.maxG; self.Umag - self.maxU; any(isnan(self.S))];
+			val = [val; abs(self.acc/self.g0) - self.gmax; self.Umag - self.maxU; any(isnan(self.S))];
 			ter = [ter; true; true; true];
 			sgn = [sgn; +1; +1; +1];
 

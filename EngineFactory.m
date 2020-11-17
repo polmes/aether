@@ -31,7 +31,7 @@ classdef EngineFactory < Factory
 			en = self.constructor(data.engine);
 
 			% Basic options
-			en.options('RelTol', data.reltol, 'AbsTol', data.abstol, 'TimeStep', data.timestep, 'MaxTime', data.maxtime, 'ShowWarnings', data.verbose, 'Policy', data.policy);
+			en.options('RelTol', data.reltol, 'AbsTol', data.abstol, 'TimeStep', data.timestep, 'MaxTime', data.maxtime, 'MaxLoad', data.maxload, 'ShowWarnings', data.verbose, 'Policy', data.policy);
 
 			% Check if integrator is a valid function
 			integrator = str2func(data.solver);

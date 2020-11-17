@@ -5,7 +5,8 @@ classdef Engine < handle
 		integrator;
 		showwarnings;
 		T;
-		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere'};
+		gmax;
+		eventmssgs = {'Reached deploy altitude', 'Skipped the atmosphere', 'Exceeded g-load limit'};
 
 		% State scalars
 		rad;
@@ -21,9 +22,14 @@ classdef Engine < handle
 
 		% Rotation matrix
 		Lvb;
+
+		% Previous states
+		Upre;
+		tpre;
 	end
 
 	properties (Access = protected, Constant)
+		g0 = 9.80665; % standard gravity [m/s^2]
 		offalt = 100; % offset integration end condition by some meters to interpolate final quantities
 	end
 
@@ -42,6 +48,7 @@ classdef Engine < handle
 				p.addParameter('AbsTol', 1e-13);
 				p.addParameter('TimeStep', 0.001);
 				p.addParameter('MaxTime', 2000);
+				p.addParameter('MaxLoad', 40);
 				p.addParameter('Integrator', @ode113); % or @ode45
 				p.addParameter('ShowWarnings', true);
 				self.init = true;
@@ -50,6 +57,7 @@ classdef Engine < handle
 				p.addParameter('AbsTol', self.opts.AbsTol);
 				p.addParameter('TimeStep', self.opts.TimeStep);
 				p.addParameter('MaxTime', self.T);
+				p.addParameter('MaxLoad', self.gmax);
 				p.addParameter('Integrator', self.integrator);
 				p.addParameter('ShowWarnings', self.showwarnings);
 			end
@@ -59,6 +67,7 @@ classdef Engine < handle
 			self.opts.AbsTol = p.Results.AbsTol;
 			self.opts.TimeStep = p.Results.TimeStep;
 			self.T = p.Results.MaxTime;
+			self.gmax = p.Results.MaxLoad;
 			self.integrator = p.Results.Integrator;
 			self.showwarnings = p.Results.ShowWarnings;
 		end
@@ -276,15 +285,17 @@ classdef Engine < handle
 		end
 
 		% ODE event function
-		function [val, ter, sgn] = event(self, ~, sc, pl)
+		function [val, ter, sgn] = event(self, t, sc, pl)
 			% Can be extended by overriding / concatenating to its results
-			% Note: [DeployAltitude, SkipAtmosphere]
+			% Note: [DeployAltitude, SkipAtmosphere, MaxLoad]
 			Umag = norm(self.U);
 			Ucir = sqrt(pl.mu / self.rad);
-			skip = (self.alt > pl.atm.lim && Umag > Ucir); % EI + velocity
-			val = [self.alt - (sc.deploy - self.offalt); skip];
-			sgn = [-1; +1];
-			ter = [true; true];
+			accl = (Umag - self.Upre) / (t - self.tpre);
+			val = [self.alt - (sc.deploy - self.offalt); self.alt > pl.atm.lim && Umag > Ucir; abs(accl/self.g0) - self.gmax];
+			sgn = [-1; +1; +1];
+			ter = [true; true; true];
+			self.Upre = Umag;
+			self.tpre = t;
 		end
 
 		% Reset variables for next integration
@@ -303,6 +314,10 @@ classdef Engine < handle
 
 			% Rotation matrix
 			self.Lvb = eye(3);
+
+			% Previous states
+			self.Upre = 0;
+			self.tpre = 1e5;
 		end
 	end
 end

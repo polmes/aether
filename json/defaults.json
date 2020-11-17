@@ -35,6 +35,7 @@
 		"solver": "ode113",
 		"verbose": true,
 		"maxtime": 2000,
+		"maxload": 5,
 		"reltol": 1e-5,
 		"abstol": 1e-7,
 		"timestep": 0.01,

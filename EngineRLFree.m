@@ -47,7 +47,7 @@ classdef EngineRLFree < EngineRL
 			% Check for terminal condition + determine reward
 			idx = sign(val) ~= sign(self.ev) & sign(val) == sgn;
 			if any(ter(idx))
-				ie = find(idx);
+				ie = find(idx, 1);
 				disp(['Terminal event: ' num2str(ie)]);
 				if ie == 1
 					% Reached deploy altitude
@@ -87,7 +87,7 @@ classdef EngineRLFree < EngineRL
 			self.prevU = self.Umag;
 
 			% Append velocity-based events
-			val = [val; abs(self.acc/self.g0) - self.maxG; self.Umag - self.maxU; any(isnan(self.S))];
+			val = [val; abs(self.acc/self.g0) - self.gmax; self.Umag - self.maxU; any(isnan(self.S))];
 			ter = [ter; true; true; true];
 			sgn = [sgn; +1; +1; +1];
 
