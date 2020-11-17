@@ -13,7 +13,9 @@ classdef EngineRLFree < EngineRL
 				% Initiate roll...
 				self.initroll();
 				self.t0 = self.t;
-				disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, w = ' num2str(self.rate/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
+				if self.showwarnings
+					disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, w = ' num2str(self.rate/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
+				end
 
 				% ... and integrate until maneuver is completed
 				goal = self.count + 1;
@@ -48,7 +50,9 @@ classdef EngineRLFree < EngineRL
 			idx = sign(val) ~= sign(self.ev) & sign(val) == sgn;
 			if any(ter(idx))
 				ie = find(idx, 1);
-				disp(['Terminal event: ' num2str(ie)]);
+				if self.showwarnings
+					disp(['Terminal event: ' num2str(ie)]);
+				end
 				if ie == 1
 					% Reached deploy altitude
 					ran = self.pl.greatcircle(self.rad0, self.lat0, self.lon0, self.rad, self.lat, self.lon);
