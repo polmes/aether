@@ -300,7 +300,8 @@ function postCx(varargin)
 	%% FINAL
 
 	% Save figures
-	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ', 'TSI'};	figcount = numel(names); % # of figures to save
+	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ', 'TSI'};
+	figcount = numel(names); % # of figures to save
 	totalfig = numel(findobj('type', 'figure'));
 	for i = 1:figcount
 		util.render(figure(totalfig - figcount + i), [name '_' names{i}]);
