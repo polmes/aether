@@ -39,6 +39,6 @@
 		"reltol": 1e-5,
 		"abstol": 1e-7,
 		"timestep": 0.01,
-		"policy": ""
+		"policy": "agent40g"
 	}
 }
