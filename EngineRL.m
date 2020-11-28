@@ -104,7 +104,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 				p.addParameter('TimeStep', 0.001);
 				p.addParameter('MaxTime', 2000);
 				p.addParameter('MaxLoad', 40);
-				p.addParameter('Policy', 'trained_upto8000');
+				p.addParameter('Policy', 'agent40g');
 				self.init = true;
 			else
 				p.addParameter('TimeStep', self.opts.TimeStep);
