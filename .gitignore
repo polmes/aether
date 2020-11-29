@@ -4,10 +4,12 @@
 # Data directories
 mat/
 fig/
+log/
 
 # Symlink directories
 mat
 fig
+log
 
 # Input files
 *_inputs.m
