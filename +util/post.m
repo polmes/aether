@@ -1,4 +1,4 @@
-function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
+function [lat, lon, alt, ph, th, ps, ran, Umag, Kn, M] = post(t, S, sc, pl, plotting)
 	% Variables
 	x = S(:,1); y = S(:,2); z = S(:,3);
 	q0 = S(:,4); q1 = S(:,5); q2 = S(:,6); q3 = S(:,7);
@@ -45,108 +45,115 @@ function [lat, lon, alt, ph, th, ps] = post(t, S, sc, pl)
 	Z = pl.R * sin(lats) * ones(size(lons));
 	topo = load('topo.mat'); % load Earth topography
 
-	% X-Y-Z
-	figure;
-	hold('on');
-	surface(X/1e3, Y/1e3, Z/1e3, 'FaceColor', 'texturemap', 'CData', topo.topo, 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
-	colormap(topo.topomap1);
-	plot3(xE/1e3, yE/1e3, zE/1e3, 'Color', 'red');
-	xlabel('$X$ [km]');
-	ylabel('$Y$ [km]');
-	zlabel('$Z$ [km]');
-	axis('equal');
-	view(3);
+	% To Plot or Not To Plot
+	if nargin < 5 || isempty(plotting)
+		plotting = true;
+	end
 
-	% Trajectory vs. time
-	figure;
-	grid('on');
-	xlabel('Time [s]');
-	yyaxis('left');
-	plot(t, alt / 1e3);
-	ylabel('Altitude [km]');
-	yyaxis('right');
-	plot(t, ran / 1e3);
-	ylabel('Range [km]');
-	xlim([0 inf]);
+	if plotting
+		% X-Y-Z
+		figure;
+		hold('on');
+		surface(X/1e3, Y/1e3, Z/1e3, 'FaceColor', 'texturemap', 'CData', topo.topo, 'EdgeColor', 'none', 'FaceLighting', 'gouraud');
+		colormap(topo.topomap1);
+		plot3(xE/1e3, yE/1e3, zE/1e3, 'Color', 'red');
+		xlabel('$X$ [km]');
+		ylabel('$Y$ [km]');
+		zlabel('$Z$ [km]');
+		axis('equal');
+		view(3);
 
-	% Altitude vs. velocity
-	figure;
-	plot(Umag, alt / 1e3);
-	grid('on');
-	xlabel('Inertial Velocity [m/s]');
-	ylabel('Altitude [km]');
+		% Trajectory vs. time
+		figure;
+		grid('on');
+		xlabel('Time [s]');
+		yyaxis('left');
+		plot(t, alt / 1e3);
+		ylabel('Altitude [km]');
+		yyaxis('right');
+		plot(t, ran / 1e3);
+		ylabel('Range [km]');
+		xlim([0 inf]);
 
-	% Altitude + Mach vs. range
-	figure;
-	grid('on');
-	xlabel('Range [km]');
-	yyaxis('left');
-	plot(ran / 1e3, alt / 1e3);
-	ylabel('Altitude [km]')
-	yyaxis('right');
-	plot(ran / 1e3, M);
-	ylabel('Mach');
-	xlim([0 inf]);
+		% Altitude vs. velocity
+		figure;
+		plot(Umag, alt / 1e3);
+		grid('on');
+		xlabel('Inertial Velocity [m/s]');
+		ylabel('Altitude [km]');
 
-	% Rarefaction + AoA vs. time
-	figure;
-	grid('on');
-	xlabel('Time [s]');
-	yyaxis('left');
-	hold('on');
-	plot(t, rad2deg(totalAoA));
-	plot(t, rad2deg(clockAoA), ':');
-	ylabel('Angle of Attack [$^\circ$]');
-	yyaxis('right');
-	plot(t, Kn);
-	ylabel('Knudsen');
-	set(gca, 'YScale', 'log');
-	xlim([0 inf]);
-	legend('$\alpha_T$', '$\phi_{\alpha_T}$');
+		% Altitude + Mach vs. range
+		figure;
+		grid('on');
+		xlabel('Range [km]');
+		yyaxis('left');
+		plot(ran / 1e3, alt / 1e3);
+		ylabel('Altitude [km]')
+		yyaxis('right');
+		plot(ran / 1e3, M);
+		ylabel('Mach');
+		xlim([0 inf]);
 
-	% Aerodynamics vs. time
-	figure;
-	hold('on');
-	plot(t, CL);
-	plot(t, CD);
-	plot(t, -CLv); % invert sign s.t. [+] = up, [-] = down
-	grid('on');
-	xlabel('Time [s]');
-	ylabel('Coefficient');
-	xlim([0 inf]);
-	legend('$C_L$', '$C_D$', '$C_{L\,v}$');
+		% Rarefaction + AoA vs. time
+		figure;
+		grid('on');
+		xlabel('Time [s]');
+		yyaxis('left');
+		hold('on');
+		plot(t, rad2deg(totalAoA));
+		plot(t, rad2deg(clockAoA), ':');
+		ylabel('Angle of Attack [$^\circ$]');
+		yyaxis('right');
+		plot(t, Kn);
+		ylabel('Knudsen');
+		set(gca, 'YScale', 'log');
+		xlim([0 inf]);
+		legend('$\alpha_T$', '$\phi_{\alpha_T}$');
 
-	% Attitude vs. time
-	figure;
-	hold('on');
-	plot(t, rad2deg(ph));
-	plot(t, rad2deg(th));
-	plot(t, rad2deg(ps));
-	grid('on');
-	xlim([0 inf]);
-	xlabel('Time [s]');
-	ylabel('Attitide Angle [$^\circ$]');
-	legend('$\phi$', '$\theta$', '$\psi$');
+		% Aerodynamics vs. time
+		figure;
+		hold('on');
+		plot(t, CL);
+		plot(t, CD);
+		plot(t, -CLv); % invert sign s.t. [+] = up, [-] = down
+		grid('on');
+		xlabel('Time [s]');
+		ylabel('Coefficient');
+		xlim([0 inf]);
+		legend('$C_L$', '$C_D$', '$C_{L\,v}$');
 
-	% Angular vs. time
-	figure;
-	hold('on');
-	plot(t, rad2deg(p));
-	plot(t, rad2deg(q));
-	plot(t, rad2deg(r));
-	grid('on');
-	xlim([0 inf]);
-	xlabel('Time [s]');
-	ylabel('Angular Velocity [$^\circ$/s]');
-	legend('$p$', '$q$', '$r$');
+		% Attitude vs. time
+		figure;
+		hold('on');
+		plot(t, rad2deg(ph));
+		plot(t, rad2deg(th));
+		plot(t, rad2deg(ps));
+		grid('on');
+		xlim([0 inf]);
+		xlabel('Time [s]');
+		ylabel('Attitide Angle [$^\circ$]');
+		legend('$\phi$', '$\theta$', '$\psi$');
 
-	% Set options
-	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
-	set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
-	set(findobj('Type', 'ColorBar'), 'TickLabelInterpreter', 'latex');
-	set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10]);
-	set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
-	set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1);
+		% Angular vs. time
+		figure;
+		hold('on');
+		plot(t, rad2deg(p));
+		plot(t, rad2deg(q));
+		plot(t, rad2deg(r));
+		grid('on');
+		xlim([0 inf]);
+		xlabel('Time [s]');
+		ylabel('Angular Velocity [$^\circ$/s]');
+		legend('$p$', '$q$', '$r$');
+
+		% Set options
+		set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
+		set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
+		set(findobj('Type', 'ColorBar'), 'TickLabelInterpreter', 'latex');
+		set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10]);
+		set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
+		set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1);
+	end
 end
 
 function [ph, th, ps, Lvb] = quaternion2euler(q0, q1, q2, q3, lat, lon, Lie)

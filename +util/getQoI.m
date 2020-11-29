@@ -1,4 +1,4 @@
-function [QoI, Qv] = getQoI(t, S, ie, sc, pl, every)
+function [QoI, Qv, igmax, iqmax] = getQoI(t, S, ie, sc, pl, every)
 	% Constants
 	%    Uinf [m/s], f
 	f = [0         , 0    ;
@@ -86,7 +86,7 @@ function [QoI, Qv] = getQoI(t, S, ie, sc, pl, every)
 
 	% Max-g
 	g0 = 9.80665; % standard gravity [m/s^2]
-	maxG = max(abs(diff(Umag(1:N-1)) ./ diff(t(1:N-1)))) / g0;
+	[maxG, igmax] = max(abs(diff(Umag(1:N-1)) ./ diff(t(1:N-1))) / g0);
 
 	% Max-Q
 	maxQ = max(1/2 * rho .* Uinf.^2);
@@ -101,7 +101,7 @@ function [QoI, Qv] = getQoI(t, S, ie, sc, pl, every)
 
 	% Max heat flux
 	dq = dqc + dqr;
-	maxdq = max(dq);
+	[maxdq, iqmax] = max(dq);
 
 	% Integrated heat
 	q = trapz(t, dq);
