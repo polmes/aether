@@ -2,5 +2,6 @@
 	"case": "",
 	"analysis": "",
 	"steps": 5,
-	"polynomialorder": 4
+	"polynomialorder": 4,
+	"maxevery": 20
 }

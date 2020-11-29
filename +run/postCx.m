@@ -6,6 +6,7 @@ function postCx(varargin)
 
 	% Analysis variables
 	name = util.constructname(extractAfter(mfilename, 'post'), {opts.case, opts.analysis});
+	lim = opts.maxevery;
 	NT = opts.steps;
 	p = opts.polynomialorder;
 
@@ -44,7 +45,8 @@ function postCx(varargin)
 	disp(['Good trajectories: ' num2str(NG/NS * 100) '%']);
 
 	% QoI of interest
-	% [ran, Uend, latf, lonf, maxG, maxdq, dur, q]
+	% Q = [ran, Uend, latf, lonf, maxG, maxdq, dur, q]
+	% U = [t, ran, alt]
 	Ygood = Y(good,:);
 	Qgood = Q(good, [3 4 5 6 8 10 2 11]);
 	Qgood(:,1) = Qgood(:,1) / 1e3; % range [m] to [km]
@@ -110,9 +112,28 @@ function postCx(varargin)
 	[~, im] = min(abs(Qgood(:,1) - Qmean(NT,1)));
 	[~, ix] = min(abs(Qgood(:,1) - (Qmean(NT,1) + 3*Qstdv(1))));
 
+	% Smart indexing to reduce figure size
+	nmx = [in, im, ix];
+	idx = cell(1, numel(nmx));
+	for k = 1:numel(nmx)
+		idx{k} = zeros(numel(Ugood{nmx(k)}(:,1)), 1);
+		tdf = ceil(1 ./ diff(Ugood{nmx(k)}(1:end-1,1)));
+		tdf(tdf > lim) = lim;
+		i = 1;
+		j = 1;
+		while i < numel(Ugood{nmx(k)}(:,1)) - 1
+			idx{k}(j) = i;
+			i = i + tdf(i);
+			j = j + 1;
+		end
+		idx{k}(j) = numel(Ugood{nmx(k)}(:,1));
+		idx{k}(j+1:end) = [];
+	end
+
 	% Lift-down period
 	iini = find(diff(Ugood{im}(:,3)) > 0, 1);
 	[~, iend] = min(abs(Ugood{im}(:,1) - (Ugood{im}(iini,1) + sc.tref(1))));
+	[~, iidx] = min(abs([iini, iend] - idx{2}));
 
 	% Polynomial Chaos Expansion via least-squares regression
 	[C, ~, I] = uq.PCE(Ygood, Qgood, inputs, p);
@@ -147,11 +168,11 @@ function postCx(varargin)
 	% Altitude vs. range
 	figure;
 	hold('on');
-	plot(Ugood{im}(:,2), Ugood{im}(:,3));
-	fill([Ugood{in}(:,2); flipud(Ugood{ix}(:,2))], [Ugood{in}(:,3); flipud(Ugood{ix}(:,3))], ...
+	plot(Ugood{im}(idx{2},2), Ugood{im}(idx{2},3));
+	fill([Ugood{in}(idx{1},2); flipud(Ugood{ix}(idx{3},2))], [Ugood{in}(idx{1},3); flipud(Ugood{ix}(idx{3},3))], ...
 		[0.85 0.90 0.95], 'EdgeColor', 'none');
 	set(gca, 'Children', flipud(get(gca, 'Children'))); % line plot on top
-	plot(Ugood{im}(iini:iend,2), Ugood{im}(iini:iend,3), ...
+	plot(Ugood{im}(idx{2}(iidx(1):iidx(2)),2), Ugood{im}(idx{2}(iidx(1):iidx(2)),3), ...
 		'Color', [0.850 0.325 0.098], 'Marker', '.', 'MarkerSize', 5);
 	xlim([0, inf]);
 	ylim([-inf, +inf]);

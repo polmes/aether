@@ -3,6 +3,7 @@ function compare(varargin)
 	[~, ~, ~, ~, opts] = util.pre('', varargin{:});
 	cases = opts.cases;
 	leg = opts.legend;
+	lim = opts.maxevery;
 	name = util.constructname(mfilename, cat(1, varargin, cases));
 
 	% Number of figures
@@ -43,30 +44,45 @@ function compare(varargin)
 		alt = alt / 1e3; % [m] -> [km]
 		vel = vel / 1e3; % [m/s] -> [km/s]
 
+		% Smart indexing to reduce figure size
+		idx = zeros(numel(t), 1);
+		tdf = ceil(1 ./ diff(t(1:end-1)));
+		tdf(tdf > lim) = lim;
+		i = 1;
+		j = 1;
+		while i < numel(t) - 1
+			idx(j) = i;
+			i = i + tdf(i);
+			j = j + 1;
+		end
+		idx(j) = numel(t);
+		idx(j+1:end) = [];
+
 		% Find lift-down period
 		iini = find(diff(alt) > 0, 1);
 		[~, iend] = min(abs(t - (t(iini) + sc.tref(1))));
+		[~, iidx] = min(abs([iini, iend] - idx));
 
 		% Plot altitude vs. range
 		figure(Nfig + 1);
-		plot(ran, alt);
-		plot(ran(iini:iend), alt(iini:iend), 'Color', 'k', 'Marker', '.', 'MarkerSize', 5);
+		plot(ran(idx), alt(idx));
+		plot(ran(idx(iidx(1):iidx(2))), alt(idx(iidx(1):iidx(2))), 'Color', 'k', 'Marker', '.', 'MarkerSize', 5);
 		plot(ran(igmax), alt(igmax), 'Color', 'k', 'Marker', 'v');
 		plot(ran(iqmax), alt(iqmax), 'Color', 'k', 'Marker', '^');
 
 		% Plot altitude vs. velocity
 		figure(Nfig + 2);
-		plot(vel, alt);
-		plot(vel(iini:iend), alt(iini:iend), 'Color', 'k', 'Marker', '.', 'MarkerSize', 5);
+		plot(vel(idx), alt(idx));
+		plot(vel(idx(iidx(1):iidx(2))), alt(idx(iidx(1):iidx(2))), 'Color', 'k', 'Marker', '.', 'MarkerSize', 5);
 		plot(vel(igmax), alt(igmax), 'Color', 'k', 'Marker', 'v');
 		plot(vel(iqmax), alt(iqmax), 'Color', 'k', 'Marker', '^');
 
 		% Plot Knudsen + Mach vs. time
 		figure(Nfig + 3);
 		yyaxis('left');
-		plot(t, Kn);
+		plot(t(idx), Kn(idx));
 		yyaxis('right');
-		plot(t, M);
+		plot(t(idx), M(idx));
 	end
 
 	% Finish figures

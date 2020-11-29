@@ -1,4 +1,5 @@
 {
 	"cases": ["defaults"],
-	"legend": ["Default trajectory"]
+	"legend": ["Default trajectory"],
+	"maxevery": 20
 }
