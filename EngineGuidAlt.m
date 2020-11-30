@@ -22,11 +22,6 @@ classdef EngineGuidAlt < EngineGuidRate
 				self.rateroll(sc.maxW * (t - self.t0));
 			end
 
-			% Append new event outputs
-			val = [val; (self.count == 1) * (self.alt - self.prevalt)];
-			ter = [ter; false];
-			sgn = [sgn; +1];
-
 			% Update properties
 			self.prevalt = self.alt;
 		end
