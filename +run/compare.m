@@ -95,7 +95,11 @@ function compare(varargin)
 	for k = 1:2
 		figure(Nfig + k);
 		ch = get(gca, 'Children');
-		legend(cat(1, flipud(ch(4:4:end)), flipud(ch(1:3))), cat(1, leg, 'Lift-down period', 'Maximum deceleration', 'Maximum heating'));
+		if numel(leg) > 1
+			legend(cat(1, flipud(ch(4:4:end)), flipud(ch(1:3))), cat(1, leg, 'Lift-down period', 'Maximum deceleration', 'Maximum heating'));
+		else
+			legend(flipud(ch(1:3)), {'Lift-down period', 'Maximum deceleration', 'Maximum heating'});
+		end
 	end
 	figure(Nfig + 3);
 	xlim([0, inf]);
@@ -105,7 +109,9 @@ function compare(varargin)
 	ylabel('Knudsen');
 	yyaxis('right');
 	ylabel('Mach');
-	legend(leg);
+	if numel(leg) > 1
+		legend(leg);
+	end
 
 	% Set options
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
