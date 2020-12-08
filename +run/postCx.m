@@ -91,6 +91,30 @@ function postCx(varargin)
 	Cdq = cov(Qgood(:,7:8)); % returns 2x2 "covariance matrix"
 	[ellxDQ, ellyDQ] = covellipse(Cdq, Qmean(NT,7:8)); % with 3-sigma uncertainty
 
+	% Lower/upper bounds
+	Qlostd = zeros(1, NQ);
+	Qupstd = zeros(1, NQ);
+	for q = 1:NQ
+		Qlower = Qgood(Qgood(:,q) < Qmean(NT,q), q);
+		Qupper = Qgood(Qgood(:,q) > Qmean(NT,q), q);
+		Qlostd(q) = sqrt(mean((Qlower - Qmean(NT,q)).^2));
+		Qupstd(q) = sqrt(mean((Qupper - Qmean(NT,q)).^2));
+	end
+	Qperclo = Qlostd ./ Qmean(NT,:) * 100;
+	Qpercup = Qupstd ./ Qmean(NT,:) * 100;
+	disp(['Lower StdDev Range       = ' sprintf('%7.2f', Qlostd(1)) ' km      = ' sprintf('%5.2f', Qperclo(1)) '%']);
+	disp(['Lower StdDev Velocity    = ' sprintf('%7.2f', Qlostd(2)) ' m/s     = ' sprintf('%5.2f', Qperclo(2)) '%']);
+	disp(['Lower StdDev Max Loading = ' sprintf('%7.2f', Qlostd(5)) ' g0      = ' sprintf('%5.2f', Qperclo(5)) '%']);
+	disp(['Lower StdDev Max Heating = ' sprintf('%7.2f', Qlostd(6)) ' W/cm^2  = ' sprintf('%5.2f', Qperclo(6)) '%']);
+	disp(['Lower StdDev Duration    = ' sprintf('%7.2f', Qlostd(7)) ' s       = ' sprintf('%5.2f', Qperclo(7)) '%']);
+	disp(['Lower StdDev Total Heat  = ' sprintf('%7.2f', Qlostd(8)) ' kJ/cm^2 = ' sprintf('%5.2f', Qperclo(8)) '%']);
+	disp(['Upper StdDev Range       = ' sprintf('%7.2f', Qupstd(1)) ' km      = ' sprintf('%5.2f', Qpercup(1)) '%']);
+	disp(['Upper StdDev Velocity    = ' sprintf('%7.2f', Qupstd(2)) ' m/s     = ' sprintf('%5.2f', Qpercup(2)) '%']);
+	disp(['Upper StdDev Max Loading = ' sprintf('%7.2f', Qupstd(5)) ' g0      = ' sprintf('%5.2f', Qpercup(5)) '%']);
+	disp(['Upper StdDev Max Heating = ' sprintf('%7.2f', Qupstd(6)) ' W/cm^2  = ' sprintf('%5.2f', Qpercup(6)) '%']);
+	disp(['Upper StdDev Duration    = ' sprintf('%7.2f', Qupstd(7)) ' s       = ' sprintf('%5.2f', Qpercup(7)) '%']);
+	disp(['Upper StdDev Total Heat  = ' sprintf('%7.2f', Qupstd(8)) ' kJ/cm^2 = ' sprintf('%5.2f', Qpercup(8)) '%']);
+
 	% Convergence error
 	Qmerr = abs((Qmean(NT-1,:) - Qmean(NT,:)) ./ Qmean(NT,:));
 	Qverr = abs((Qvari(NT-1,:) - Qvari(NT,:)) ./ Qvari(NT,:));
@@ -107,10 +131,10 @@ function postCx(varargin)
 	disp(['Mean     Duration Error = ' sprintf('%.2e', Qmerr(8))]);
 	disp(['Variance Duration Error = ' sprintf('%.2e', Qverr(8))]);
 
-	% Find closest trajectories to 3-sigma min/max + mean range
-	[~, in] = min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qstdv(1))));
+	% Find closest trajectories to lower/upper 3-sigma + mean range
+	[~, in] = min(abs(Qgood(:,1) - (Qmean(NT,1) - 3*Qupstd(1))));
 	[~, im] = min(abs(Qgood(:,1) - Qmean(NT,1)));
-	[~, ix] = min(abs(Qgood(:,1) - (Qmean(NT,1) + 3*Qstdv(1))));
+	[~, ix] = min(abs(Qgood(:,1) - (Qmean(NT,1) + 3*Qlostd(1))));
 
 	% Smart indexing to reduce figure size
 	nmx = [in, im, ix];
