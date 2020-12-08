@@ -185,7 +185,7 @@ function postCx(varargin)
 		TSI(k,:) = sum(C(I(:,k) > 0,:).^2) ./ QvariPC;
 	end
 	TSI = TSI ./ sum(TSI); % normalize to 1
-	labels = {'Range', 'Deploy Velocity', 'Max $g_0$ Loading', 'Max Heating Rate', 'Flight Duration', 'Total Heat Load'}; % QoI's [1 2 5 6 7 8]
+	labels = {'Range', 'Deploy Velocity', 'Max $g_0$ Loading', 'Max Heat Flux', 'Flight Duration', 'Total Heat Load'}; % QoI's [1 2 5 6 7 8]
 
 	%% POST
 
@@ -350,6 +350,7 @@ function postCx(varargin)
 	totalfig = numel(findobj('type', 'figure'));
 	for i = 1:figcount
 		util.render(figure(totalfig - figcount + i), [name '_' names{i}]);
+		util.render(figure(totalfig - figcount + i), [name '_' names{i}], 'Format', 'fig');
 	end
 
 	%% UTIL
