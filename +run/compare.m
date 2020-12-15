@@ -8,13 +8,17 @@ function compare(varargin)
 
 	% Number of figures
 	Nfig = numel(findobj('type', 'figure'));
-	Nnew = 3;
+	Nnew = 5;
 
 	% Init figures
 	for k = 1:Nnew
 		figure(Nfig + k);
 		hold('on');
 	end
+
+	% MATLAB colors
+	col = lines(7); % the 7 default colors in default order
+	col = col(1 + rem((1:4:7*4) - 1, 7), :); % the 7 default colors skipping 4 at a time to match plots below
 
 	% Simulate each trajectory and postprocess results
 	for k = 1:numel(cases)
@@ -39,7 +43,7 @@ function compare(varargin)
 		disp(['Integrated Heat  = ' sprintf('%7.2f' , Q(11)/1e7)     ' kJ/cm^2']);
 
 		% Variables
-		[~, ~, alt, ~, ~, ~, ran, vel, Kn, M] = util.post(t, S, sc, pl, false);
+		[~, ~, alt, ~, ~, ~, ran, vel, Kn, M, AoA, CL, CD, CLv] = util.post(t, S, sc, pl, false);
 		ran = ran / 1e3; % [m] -> [km]
 		alt = alt / 1e3; % [m] -> [km]
 		vel = vel / 1e3; % [m/s] -> [km/s]
@@ -83,6 +87,16 @@ function compare(varargin)
 		plot(t(idx), Kn(idx));
 		yyaxis('right');
 		plot(t(idx), M(idx));
+
+		% Plot total AoA vs. time
+		figure(Nfig + 4);
+		plot(t(idx), rad2deg(AoA(idx)), 'Color', col(1 + rem(k-1, 7), :));
+
+		% Plot aerodynamic coefficients vs. time
+		figure(Nfig + 5);
+		plot(t(idx), abs(CL(idx)), '-', 'Color', col(1 + rem(k-1, 7), :));
+		plot(t(idx), CD(idx), '--', 'Color', col(1 + rem(k-1, 7), :));
+		plot(t(idx), -CLv(idx), ':', 'Color', col(1 + rem(k-1, 7), :));
 	end
 
 	% Finish figures
@@ -112,6 +126,24 @@ function compare(varargin)
 	if numel(leg) > 1
 		legend(leg);
 	end
+	figure(Nfig + 4);
+	xlim([0, inf]);
+	xlabel('Time [s]');
+	ylabel('Total Angle of Attack [$^\circ$]');
+	if numel(leg) > 1
+		legend(leg, 'Location', 'northwest');
+	end
+	figure(Nfig + 5);
+	xlim([0, inf]);
+	xlabel('Time [s]');
+	ylabel('Aerodynamic Coefficient');
+	legCx = {'$|C_L|$', '$C_D$', '$C_{L\,v}$'};
+	if numel(leg) > 1
+		leg2D = strcat(repmat(leg, [1 3]), {', '}, repmat(legCx, [numel(cases) 1])).';
+		legend(leg2D(:), 'Location', 'northoutside', 'NumColumns', numel(cases));
+	else
+		legend(legCx, 'Location', 'northoutside');
+	end
 
 	% Set options
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
@@ -121,10 +153,20 @@ function compare(varargin)
 	set(findobj('Type', 'figure'), 'Renderer', 'painters', 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10], 'PaperSize', [16 10]);
 	set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
 	set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1, 'MarkerFaceColor', 'auto');
-
+	
 	% Save figures
-	names = {'altran', 'altvel', 'KnM'};
+	names = {'altran', 'altvel', 'KnM', 'AoA', 'Cx'};
 	for k = 1:Nnew
+		% Fix figure size if legend does not fit
+		hleg = get(get(figure(Nfig + k), 'CurrentAxes'), 'Legend');
+		idxpos = hleg.Position(3:4) - 1 > 0;
+		if any(idxpos)
+			prepos = get(figure(Nfig + k), 'PaperPosition');
+			newpos = prepos(3:4) + prepos(3:4) .* idxpos .* (hleg.Position(3:4) - 1 + 0.2);
+			set(figure(Nfig + k), 'PaperPosition', [0 0 newpos]);
+		end
+		
+		% Render vector image
 		util.render(figure(Nfig + k), [name '_' names{k}]);
 	end
 end

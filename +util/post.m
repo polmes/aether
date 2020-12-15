@@ -1,4 +1,4 @@
-function [lat, lon, alt, ph, th, ps, ran, Umag, Kn, M] = post(t, S, sc, pl, plotting)
+function [lat, lon, alt, ph, th, ps, ran, Umag, Kn, M, totalAoA, CL, CD, CLv] = post(t, S, sc, pl, plotting)
 	% Variables
 	x = S(:,1); y = S(:,2); z = S(:,3);
 	q0 = S(:,4); q1 = S(:,5); q2 = S(:,6); q3 = S(:,7);
