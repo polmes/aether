@@ -45,9 +45,9 @@ function [t, S, te, Se, ie] = RK4(odefun, Ts, S0, opts)
 		idx = sign(val) ~= sign(ev) & sign(val) == sgn;
 		if any(idx)
 			Ne = sum(idx);
-			ie(m:m+Ne) = find(idx);
-			te(m:m+Ne) = repmat(t(n+1), [Ne, 1]);
-			Se(m:m+Ne,:) = repmat(S(n+1), [Ne, 1]);
+			ie(m:m+Ne-1) = find(idx);
+			te(m:m+Ne-1) = repmat(t(n+1), [Ne, 1]);
+			Se(m:m+Ne-1,:) = repmat(S(n+1,:), [Ne, 1]);
 			if any(ter(idx))
 				break;
 			end
