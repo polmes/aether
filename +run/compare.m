@@ -159,11 +159,13 @@ function compare(varargin)
 	for k = 1:Nnew
 		% Fix figure size if legend does not fit
 		hleg = get(get(figure(Nfig + k), 'CurrentAxes'), 'Legend');
-		idxpos = hleg.Position(3:4) - 1 > 0;
-		if any(idxpos)
-			prepos = get(figure(Nfig + k), 'PaperPosition');
-			newpos = prepos(3:4) + prepos(3:4) .* idxpos .* (hleg.Position(3:4) - 1 + 0.2);
-			set(figure(Nfig + k), 'PaperPosition', [0 0 newpos]);
+		if ~isempty(hleg)
+			idxpos = hleg.Position(3:4) - 1 > 0;
+			if any(idxpos)
+				prepos = get(figure(Nfig + k), 'PaperPosition');
+				newpos = prepos(3:4) + prepos(3:4) .* idxpos .* (hleg.Position(3:4) - 1 + 0.2);
+				set(figure(Nfig + k), 'PaperPosition', [0 0 newpos]);
+			end
 		end
 		
 		% Render vector image
