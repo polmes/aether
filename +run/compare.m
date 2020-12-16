@@ -110,9 +110,9 @@ function compare(varargin)
 		figure(Nfig + k);
 		ch = get(gca, 'Children');
 		if numel(leg) > 1
-			legend(cat(1, flipud(ch(4:4:end)), flipud(ch(1:3))), cat(1, leg, 'Lift-down period', 'Maximum deceleration', 'Maximum heating'));
+			legend(cat(1, flipud(ch(4:4:end)), flipud(ch(1:3))), cat(1, leg, 'Lift-down period', 'Maximum deceleration', 'Maximum heating'), 'Location', 'best');
 		else
-			legend(flipud(ch(1:3)), {'Lift-down period', 'Maximum deceleration', 'Maximum heating'});
+			legend(flipud(ch(1:3)), {'Lift-down period', 'Maximum deceleration', 'Maximum heating'}, 'Location', 'best');
 		end
 	end
 	figure(Nfig + 3);
