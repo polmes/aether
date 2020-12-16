@@ -77,7 +77,7 @@ classdef AtmosphereStd76 < Atmosphere
 		function [rho, MFP, a, W] = trajectory(self, ~, alt, ~, ~)
 			[rho, ~, T] = self.model(alt);
 			[Mw, MFP] = self.fluid(alt);
-			a = sqrt(self.gamma .* Ru ./ Mw .* T);
+			a = sqrt(self.gamma .* self.Ru ./ Mw .* T);
 			W = self.W;
 		end
 	end
