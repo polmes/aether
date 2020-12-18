@@ -194,12 +194,12 @@ function postCx(varargin)
 	hold('on');
 	plot(Ugood{im}(idx{2},2), Ugood{im}(idx{2},3));
 	fill([Ugood{in}(idx{1},2); flipud(Ugood{ix}(idx{3},2))], [Ugood{in}(idx{1},3); flipud(Ugood{ix}(idx{3},3))], ...
-		[0.85 0.90 0.95], 'EdgeColor', 'none');
+		lines(1), 'FaceAlpha', 0.2, 'EdgeColor', 'none');
 	set(gca, 'Children', flipud(get(gca, 'Children'))); % line plot on top
 	plot(Ugood{im}(idx{2}(iidx(1):iidx(2)),2), Ugood{im}(idx{2}(iidx(1):iidx(2)),3), ...
-		'Color', [0.850 0.325 0.098], 'Marker', '.', 'MarkerSize', 5);
-	xlim([0, inf]);
-	ylim([-inf, +inf]);
+		'Color', lines(1), 'Marker', '.', 'MarkerSize', 5);
+	grid('on');
+	axis('tight');
 	xlabel('Range [km]');
 	ylabel('Altitude [km]');
 	legend(cat(1, flipud(findobj(gca, 'Type', 'Line')), findobj(gca, 'Type', 'Patch')), ...
@@ -338,7 +338,7 @@ function postCx(varargin)
 	set(findobj('Type', 'Legend'), 'Interpreter', 'latex');
 	set(findobj('Type', 'axes'), 'FontSize', 12, 'TickLabelInterpreter', 'latex');
 	set(findobj('Type', 'ColorBar'), 'TickLabelInterpreter', 'latex');
-	set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10]);
+	set(findobj('Type', 'figure'), 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10], 'PaperSize', [16 10]);
 	set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
 	set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1);
 
@@ -348,8 +348,9 @@ function postCx(varargin)
 	names = {'altran', 'scRV', 'scLH', 'scDQ', 'scLL', 'convR', 'convV', 'convL', 'convH', 'convD', 'convQ', 'TSI'};
 	figcount = numel(names); % # of figures to save
 	totalfig = numel(findobj('type', 'figure'));
+	formats = ['pdf', repmat({'epsc'}, [1 figcount-1])];
 	for i = 1:figcount
-		util.render(figure(totalfig - figcount + i), [name '_' names{i}]);
+		util.render(figure(totalfig - figcount + i), [name '_' names{i}], 'Format', formats{i});
 		util.render(figure(totalfig - figcount + i), [name '_' names{i}], 'Format', 'fig');
 	end
 
