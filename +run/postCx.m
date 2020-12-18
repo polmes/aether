@@ -194,10 +194,10 @@ function postCx(varargin)
 	hold('on');
 	plot(Ugood{im}(idx{2},2), Ugood{im}(idx{2},3));
 	fill([Ugood{in}(idx{1},2); flipud(Ugood{ix}(idx{3},2))], [Ugood{in}(idx{1},3); flipud(Ugood{ix}(idx{3},3))], ...
-		lines(1), 'FaceAlpha', 0.2, 'EdgeColor', 'none');
+		[0.000 0.447 0.741], 'FaceAlpha', 0.2, 'EdgeColor', 'none');
 	set(gca, 'Children', flipud(get(gca, 'Children'))); % line plot on top
 	plot(Ugood{im}(idx{2}(iidx(1):iidx(2)),2), Ugood{im}(idx{2}(iidx(1):iidx(2)),3), ...
-		'Color', lines(1), 'Marker', '.', 'MarkerSize', 5);
+		'Color', [0.850 0.325 0.098], 'Marker', '.', 'MarkerSize', 5);
 	grid('on');
 	axis('tight');
 	xlabel('Range [km]');
