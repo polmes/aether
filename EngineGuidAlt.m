@@ -24,6 +24,11 @@ classdef EngineGuidAlt < EngineGuidRate
 
 			% Update properties
 			self.prevalt = self.alt;
+
+			% Append new event outputs
+			val = [val; t - self.t0];
+			ter = [ter; false];
+			sgn = [sgn; +1];
 		end
 
 		function initreset(self)
@@ -31,7 +36,7 @@ classdef EngineGuidAlt < EngineGuidRate
 			initreset@EngineGuidRate(self);
 
 			% New state scalars
-			self.t0 = 0;
+			self.t0 = 1e9;
 			self.prevalt = 1e9;
 		end
 	end
