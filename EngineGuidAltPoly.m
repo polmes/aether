@@ -39,6 +39,11 @@ classdef EngineGuidAltPoly < EngineGuidRate
 			self.alt2 = self.alt1;
 			self.alt1 = self.alt0;
 			self.alt0 = self.alt;
+
+			% Append new event outputs
+			val = [val; t - self.tref];
+			ter = [ter; false];
+			sgn = [sgn; +1];
 		end
 
 		function initreset(self)
@@ -49,7 +54,7 @@ classdef EngineGuidAltPoly < EngineGuidRate
 			self.t0 = 0;
 			self.t1 = 0;
 			self.t2 = 0;
-			self.tref = 0;
+			self.tref = 1e9;
 			self.alt0 = 1e9;
 			self.alt1 = 1e9;
 			self.alt2 = 1e9;

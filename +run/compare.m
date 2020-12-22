@@ -29,7 +29,7 @@ function compare(varargin)
 		en.options('ShowWarnings', false);
 
 		% Trajectory
-		[t, S, ie] = en.integrate(S0, sc, pl);
+		[t, S, ie, te] = en.integrate(S0, sc, pl);
 
 		% Quantities of Interest
 		[Q, ~, igmax, iqmax] = util.getQoI(t, S, ie, sc, pl);
@@ -63,7 +63,7 @@ function compare(varargin)
 		idx(j+1:end) = [];
 
 		% Find lift-down period
-		iini = find(diff(alt) > 0, 1);
+		[~, iini] = min(abs(t - te(find(ie == 4, 1))));
 		[~, iend] = min(abs(t - (t(iini) + sc.tref(1))));
 		[~, iidx] = min(abs([iini, iend] - idx));
 
@@ -103,6 +103,7 @@ function compare(varargin)
 	figure(Nfig + 1);
 	xlabel('Range [km]');
 	ylabel('Altitude [km]');
+	set(get(gca, 'XAxis'), 'Exponent', 0);
 	figure(Nfig + 2);
 	xlabel('Inertial Velocity [km/s]');
 	ylabel('Altitude [km]');
@@ -153,7 +154,7 @@ function compare(varargin)
 	set(findobj('Type', 'figure'), 'Renderer', 'painters', 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 16 10], 'PaperSize', [16 10]);
 	set(findall(findobj('Type', 'axes'), 'Type', 'Text'), 'Interpreter', 'latex');
 	set(findall(findobj('Type', 'axes'), 'Type', 'Line'), 'LineWidth', 1, 'MarkerFaceColor', 'auto');
-	
+
 	% Save figures
 	names = {'altran', 'altvel', 'KnM', 'AoA', 'Cx'};
 	for k = 1:Nnew
@@ -167,7 +168,7 @@ function compare(varargin)
 				set(figure(Nfig + k), 'PaperPosition', [0 0 newpos]);
 			end
 		end
-		
+
 		% Render vector image
 		util.render(figure(Nfig + k), [name '_' names{k}]);
 	end

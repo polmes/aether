@@ -39,6 +39,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 		n;
 		ts;
 		Ss;
+		te;
 		policy;
 	end
 
@@ -166,6 +167,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 				% Initiate roll...
 				self.initroll();
 				self.t0 = self.t;
+				self.te = self.t0;
 				if self.showwarnings
 					disp(['t = ' num2str(self.t0, '%6.2f') ' s, h = ' num2str(self.alt/1e3, '%6.2f') ' km, w = ' num2str(self.rate/1e3, '%6.2f') ' km/s, a = ' num2str(self.acc/self.g0, '%6.2f') ' g0']);
 				end
@@ -218,7 +220,7 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			logs = [];
 		end
 
-		function [t, S, ie] = integrate(self, S, sc, pl)
+		function [t, S, ie, te] = integrate(self, S, sc, pl)
 			% Reset variables for next integration
 			self.initreset();
 
@@ -240,8 +242,10 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			S = self.Ss(1:self.n,:);
 			if exp.Reward.Data(end) == self.penalty
 				ie = 2; % (not 1)
+				te = [];
 			else
-				ie = 1;
+				ie = [4; 1];
+				te = [self.te; t(end)];
 			end
 		end
 	end
@@ -279,11 +283,6 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			self.acc = (self.Umag - self.prevU) / self.opts.TimeStep;
 			self.prevU = self.Umag;
 
-			% Append velocity-based events
-			val = [val; abs(self.acc/self.g0) - self.gmax; self.Umag - self.maxU; any(isnan(self.S))];
-			ter = [ter; true; true; true];
-			sgn = [sgn; +1; +1; +1];
-
 			% Guidance commands
 			if self.count == 2 && (t - self.t0) >= sc.tref(1)
 				self.initroll();
@@ -300,6 +299,11 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 				self.ts(self.n) = self.t;
 				self.Ss(self.n,:) = self.S;
 			end
+
+			% Append new event outputs
+			val = [val; t - self.t0; abs(self.acc/self.g0) - self.gmax; self.Umag - self.maxU; any(isnan(self.S))];
+			ter = [ter; false; true; true; true];
+			sgn = [sgn; +1; +1; +1; +1];
 		end
 
 		function initreset(self)
@@ -307,7 +311,8 @@ classdef EngineRL < rl.env.MATLABEnvironment & EngineGuidRate
 			initreset@EngineGuidRate(self);
 
 			% State scalars that must be reset each time
-			self.t0 = 0;
+			self.t0 = 1e9;
+			self.te = 0;
 			self.done = false;
 		end
 	end
