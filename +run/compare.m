@@ -63,9 +63,13 @@ function compare(varargin)
 		idx(j+1:end) = [];
 
 		% Find lift-down period
-		[~, iini] = min(abs(t - te(find(ie == 4, 1))));
-		[~, iend] = min(abs(t - (t(iini) + sc.tref(1))));
-		[~, iidx] = min(abs([iini, iend] - idx));
+		try
+			[~, iini] = min(abs(t - te(find(ie == 4, 1))));
+			[~, iend] = min(abs(t - (t(iini) + sc.tref(1))));
+			[~, iidx] = min(abs([iini, iend] - idx));
+		catch
+			iidx = [1 1];
+		end
 
 		% Plot altitude vs. range
 		figure(Nfig + 1);
